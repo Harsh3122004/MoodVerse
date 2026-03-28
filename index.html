@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MoodVerse — AI Entertainment Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#04040e;--bg2:#08081a;--bg3:#0d0d20;--bg4:#121228;
+  --gold:#e8b84b;--gold2:#f5d080;--cyan:#00dde0;--red:#e84b6a;
+  --green:#2ed573;--purple:#a855f7;--pink:#ff6b9d;--blue:#54a0ff;
+  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.08);
+  --border:rgba(255,255,255,0.07);--border2:rgba(232,184,75,0.3);
+  --txt:#eeeef8;--txt2:#9999bb;--txt3:#333355;
+  --shadow:0 8px 40px rgba(0,0,0,0.8);--r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
+#root{position:relative;z-index:1;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+
+/* ── Landing ── */
+.landing{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);transition:opacity .6s,transform .6s;}
+.landing.exit{opacity:0;transform:scale(1.05);pointer-events:none;}
+.landing-glow{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(232,184,75,0.06) 0%,transparent 70%);}
+.landing-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,7rem);font-weight:700;text-align:center;line-height:1.1;margin-bottom:16px;animation:fadeUp .8s ease-out both;}
+.landing-title .mood{background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 50%,#fff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.landing-title .verse{color:rgba(255,255,255,0.9);}
+.landing-tagline{font-size:clamp(.9rem,2vw,1.15rem);color:var(--txt2);text-align:center;max-width:500px;margin-bottom:48px;animation:fadeUp .8s .15s ease-out both;}
+.landing-categories{display:flex;gap:20px;margin-bottom:48px;animation:fadeUp .8s .3s ease-out both;flex-wrap:wrap;justify-content:center;}
+.cat-card{width:180px;padding:28px 20px;background:var(--glass);border:1px solid var(--border);border-radius:20px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.cat-card::before{content:'';position:absolute;inset:0;border-radius:20px;opacity:0;transition:opacity .25s;background:var(--cat-bg,rgba(232,184,75,0.1));}
+.cat-card:hover::before{opacity:1;}
+.cat-card:hover{transform:translateY(-6px);border-color:var(--cat-c,var(--gold));box-shadow:0 12px 40px rgba(0,0,0,0.5),0 0 30px var(--cat-glow,rgba(232,184,75,0.2));}
+.cat-icon{font-size:2.8rem;display:block;margin-bottom:12px;filter:drop-shadow(0 0 12px var(--cat-c,var(--gold)));}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--cat-c,var(--gold));}
+.cat-desc{font-size:.75rem;color:var(--txt2);margin-top:4px;}
+.enter-btn{background:linear-gradient(135deg,var(--gold),#c8960a);color:#0a0808;border:none;cursor:pointer;padding:16px 52px;border-radius:50px;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;letter-spacing:.08em;box-shadow:0 4px 30px rgba(232,184,75,0.4);transition:all .25s;animation:fadeUp .8s .45s ease-out both;position:relative;overflow:hidden;}
+.enter-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.25) 50%,transparent 60%);animation:shimmer 2.5s infinite;}
+.enter-btn:hover{transform:translateY(-3px);box-shadow:0 8px 40px rgba(232,184,75,0.6);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ── Header ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);background:rgba(4,4,14,0.88);position:sticky;top:0;z-index:100;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;letter-spacing:1px;}
+.logo .m{color:var(--gold);}.logo .v{color:var(--txt);font-weight:400;}
+.logo-sub{font-size:.68rem;color:var(--txt2);letter-spacing:.1em;text-transform:uppercase;}
+.nav{display:flex;gap:2px;background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:4px;}
+.nav-btn{background:none;border:none;color:var(--txt2);cursor:pointer;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.nav-btn:hover{color:var(--txt);background:var(--glass2);}
+.nav-btn.active{color:#000;background:var(--gold);font-weight:600;}
+.cat-nav{display:flex;gap:6px;margin-left:8px;}
+.cat-btn{background:var(--glass);border:1px solid var(--border);color:var(--txt2);cursor:pointer;padding:6px 14px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;transition:all .2s;}
+.cat-btn.active{border-color:var(--cat-c);color:var(--cat-c);background:rgba(var(--cat-cr),0.1);}
+.cat-btn:hover:not(.active){color:var(--txt);border-color:rgba(255,255,255,0.2);}
+.header-right{display:flex;gap:9px;align-items:center;}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--glass2);border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:.82rem;color:var(--gold);}
+.user-av{width:22px;height:22px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#000;}
+.btn{background:var(--glass2);border:1px solid var(--border2);color:var(--gold);cursor:pointer;padding:7px 15px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;transition:all .2s;}
+.btn:hover{background:var(--border2);}
+.btn.primary{background:linear-gradient(135deg,var(--gold),#d4a030);color:#0a0808;border:none;font-weight:600;}
+.btn.primary:hover{opacity:.9;}
+.btn.danger{border-color:rgba(232,75,106,0.4);color:var(--red);}
+.btn.danger:hover{background:rgba(232,75,106,0.1);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:38px;width:400px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,0.9);}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:700;color:var(--gold);margin-bottom:5px;}
+.modal-sub{color:var(--txt2);font-size:.86rem;margin-bottom:26px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:.78rem;font-weight:500;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:.93rem;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--border2);}
+.form-input::placeholder{color:var(--txt3);}
+.modal-footer{text-align:center;margin-top:18px;font-size:.82rem;color:var(--txt2);}
+.modal-footer button{background:none;border:none;color:var(--gold);cursor:pointer;font-size:.82rem;text-decoration:underline;}
+
+/* ── Main ── */
+.main{max-width:1220px;margin:0 auto;padding:36px 28px 80px;}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2),var(--txt));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:7px;}
+.page-sub{color:var(--txt2);font-size:.93rem;margin-bottom:32px;}
+
+/* ── Mood panel ── */
+.mood-panel{background:var(--glass);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);overflow:hidden;margin-bottom:24px;}
+.tabs{display:flex;border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:14px;background:none;border:none;cursor:pointer;color:var(--txt2);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;transition:all .2s;border-bottom:2px solid transparent;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,184,75,0.05);}
+.tab:hover:not(.active){color:var(--txt);background:var(--glass2);}
+.tab-body{padding:22px 26px;}
+.mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
+.mood-btn{padding:12px 7px;background:var(--glass);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:all .2s;text-align:center;font-family:'DM Sans',sans-serif;color:var(--txt2);font-size:.78rem;font-weight:500;}
+.mood-btn:hover{border-color:var(--border2);color:var(--txt);transform:translateY(-2px);}
+.mood-btn.selected{border-color:var(--c,var(--gold));background:rgba(var(--cr,232,184,75),0.12);color:var(--c,var(--gold));box-shadow:0 0 14px rgba(var(--cr,232,184,75),0.2);}
+.mood-emoji{font-size:1.4rem;display:block;margin-bottom:4px;}
+.sliders-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.slider-row label{display:flex;justify-content:space-between;align-items:center;color:var(--txt2);font-size:.78rem;margin-bottom:6px;}
+.slider-row label span:first-child{font-weight:500;color:var(--txt);}
+.slider-row label span:last-child{color:var(--gold);font-size:.76rem;font-weight:600;}
+.slider-row input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--c,var(--gold)) 0%,var(--c,var(--gold)) var(--pct,50%),var(--border) var(--pct,50%),var(--border) 100%);}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--c,var(--gold));transition:transform .15s;}
+.slider-row input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25);}
+.slider-labels{display:flex;justify-content:space-between;font-size:.67rem;color:var(--txt3);margin-top:2px;}
+.mood-textarea{width:100%;min-height:85px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:.91rem;resize:none;outline:none;transition:border-color .2s;}
+.mood-textarea:focus{border-color:var(--border2);}
+.mood-textarea::placeholder{color:var(--txt2);}
+.interpret-row{display:flex;gap:10px;margin-top:10px;align-items:flex-start;}
+.ai-btn{background:linear-gradient(135deg,rgba(0,221,224,.15),rgba(0,221,224,.05));border:1px solid rgba(0,221,224,.4);color:var(--cyan);padding:9px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;white-space:nowrap;transition:all .2s;}
+.ai-btn:hover{background:rgba(0,221,224,.2);}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ai-expl{flex:1;background:rgba(0,221,224,.05);border:1px solid rgba(0,221,224,.2);border-radius:8px;padding:8px 12px;color:var(--cyan);font-size:.8rem;line-height:1.5;}
+
+/* ── Find btn ── */
+.get-btn-wrap{text-align:center;margin-bottom:32px;}
+.get-btn{background:linear-gradient(135deg,var(--gold),#c8960a);color:#0a0808;border:none;cursor:pointer;padding:14px 42px;border-radius:50px;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;letter-spacing:.04em;box-shadow:0 4px 22px rgba(232,184,75,.35);transition:all .2s;position:relative;overflow:hidden;}
+.get-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(232,184,75,.5);}
+.get-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);animation:shimmer 2.5s infinite;}
+
+/* ── Filters ── */
+.filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:22px;flex-wrap:wrap;}
+.filter-label{color:var(--txt2);font-size:.76rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{padding:4px 11px;border-radius:20px;cursor:pointer;font-size:.76rem;font-weight:500;background:var(--glass);border:1px solid var(--border);color:var(--txt2);transition:all .15s;}
+.pill.active{background:var(--border2);border-color:var(--gold);color:var(--gold);}
+.pill:hover:not(.active){border-color:rgba(255,255,255,.2);color:var(--txt);}
+.filter-sep{width:1px;height:16px;background:var(--border);}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:var(--gold);margin-bottom:18px;}
+
+/* ── Cards grid ── */
+.cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+
+/* ── Movie Card ── */
+.movie-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;}
+.movie-card:hover{transform:translateY(-5px);border-color:var(--border2);box-shadow:0 14px 36px rgba(0,0,0,.7);}
+.poster-wrap{position:relative;aspect-ratio:2/3;overflow:hidden;background:linear-gradient(135deg,#0e0e22,#1a1a30);}
+.poster-img{width:100%;height:100%;object-fit:cover;display:block;}
+.poster-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--txt2);font-size:.72rem;text-align:center;padding:12px;}
+.poster-grad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(4,4,14,1) 0%,rgba(4,4,14,.4) 60%,transparent 100%);}
+.card-wl-btn{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:4px 6px;cursor:pointer;color:var(--txt2);font-size:.9rem;line-height:1;transition:all .2s;z-index:2;}
+.card-wl-btn:hover,.card-wl-btn.saved{color:var(--gold);border-color:var(--border2);}
+.badge{position:absolute;top:8px;left:8px;background:rgba(232,184,75,.2);backdrop-filter:blur(6px);border:1px solid rgba(232,184,75,.4);border-radius:5px;padding:2px 6px;font-size:.66rem;font-weight:600;color:var(--gold);}
+.card-body{padding:10px 12px 12px;}
+.card-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-meta2{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
+.rating{font-size:.76rem;font-weight:600;color:var(--gold);}
+.gpills{display:flex;gap:3px;flex-wrap:wrap;}
+.gpill{font-size:.63rem;padding:1px 5px;background:var(--glass2);border:1px solid var(--border);border-radius:9px;color:var(--txt2);}
+.card-overlay{position:absolute;inset:0;background:rgba(4,4,14,.95);padding:13px;opacity:0;transition:opacity .2s;display:flex;flex-direction:column;justify-content:center;z-index:1;}
+.movie-card:hover .card-overlay{opacity:1;}
+.ov-title{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.ov-text{font-size:.74rem;color:var(--txt2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+.ov-tags{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;}
+.ov-tag{font-size:.67rem;padding:2px 6px;background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.25);border-radius:9px;color:var(--gold2);}
+
+/* ── Music Card ── */
+.music-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;transition:all .2s;position:relative;display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.music-card:hover{border-color:rgba(46,213,115,.3);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.music-icon{font-size:2rem;margin-bottom:10px;}
+.music-title{font-size:.88rem;font-weight:600;color:var(--txt);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-artist{font-size:.78rem;color:var(--cyan);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-genre{font-size:.72rem;color:var(--txt2);margin-bottom:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-bars{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.bar-label{font-size:.67rem;color:var(--txt2);width:70px;flex-shrink:0;}
+.bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s;}
+.music-duration{font-size:.7rem;color:var(--txt2);}
+.music-pop{position:absolute;top:12px;right:12px;font-size:.7rem;color:var(--green);font-weight:600;}
+
+/* ── Anime Card ── */
+.anime-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;}
+.anime-card:hover{transform:translateY(-5px);border-color:rgba(168,85,247,.4);box-shadow:0 14px 36px rgba(0,0,0,.7);}
+.anime-poster{position:relative;aspect-ratio:2/3;overflow:hidden;background:linear-gradient(135deg,#110022,#1a0030);}
+.anime-poster img{width:100%;height:100%;object-fit:cover;}
+.anime-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.anime-grad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(4,4,14,1),transparent);}
+.anime-type-badge{position:absolute;top:8px;left:8px;background:rgba(168,85,247,.3);border:1px solid rgba(168,85,247,.5);border-radius:5px;padding:2px 7px;font-size:.67rem;color:#d8b4fe;font-weight:600;}
+.anime-body{padding:10px 12px 12px;}
+.anime-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.anime-meta{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
+.anime-rating{font-size:.76rem;font-weight:600;color:var(--purple);}
+.anime-overlay{position:absolute;inset:0;background:rgba(4,4,14,.95);padding:13px;opacity:0;transition:opacity .2s;display:flex;flex-direction:column;justify-content:center;z-index:1;}
+.anime-card:hover .anime-overlay{opacity:1;}
+
+/* ── Skeleton ── */
+.skeleton{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.sk-p{aspect-ratio:2/3;background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:sk 1.5s infinite;}
+.sk-b{padding:10px 12px;}
+.sk-l{height:9px;border-radius:5px;margin-bottom:6px;background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:sk 1.5s infinite;}
+.sk-l.w80{width:80%;}.sk-l.w60{width:60%;}.sk-l.w40{width:40%;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── Watchlist ── */
+.wl-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;backdrop-filter:blur(4px);}
+.wl-panel{position:fixed;top:0;right:0;bottom:0;width:320px;background:var(--bg2);border-left:1px solid var(--border);z-index:201;padding:22px 18px;overflow-y:auto;animation:slideIn .25s ease-out;box-shadow:-10px 0 40px rgba(0,0,0,.6);}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.wl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.wl-ttl{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:700;color:var(--gold);}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--txt2);font-size:1.25rem;line-height:1;transition:color .15s;padding:3px;}
+.close-btn:hover{color:var(--txt);}
+.wl-empty{color:var(--txt2);text-align:center;padding:32px 0;font-size:.86rem;}
+.wl-item{display:flex;gap:9px;padding:9px;background:var(--glass);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;align-items:center;}
+.wl-ph{width:38px;height:57px;border-radius:4px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:1rem;flex-shrink:0;}
+.wl-info{flex:1;min-width:0;}
+.wl-item-title{font-size:.8rem;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wl-item-meta{font-size:.7rem;color:var(--txt2);margin-top:1px;}
+.rm-btn{background:none;border:none;cursor:pointer;color:var(--txt2);font-size:.9rem;padding:3px;transition:color .15s;flex-shrink:0;}
+.rm-btn:hover{color:var(--red);}
+
+/* ── AI Tools ── */
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:28px;}
+.tool-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:22px;}
+.tool-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--gold);margin-bottom:4px;}
+.tool-sub{font-size:.78rem;color:var(--txt2);margin-bottom:14px;}
+.tool-textarea{width:100%;min-height:78px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:.88rem;resize:none;outline:none;transition:border-color .2s;margin-bottom:9px;}
+.tool-textarea:focus{border-color:var(--border2);}
+.tool-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;margin-bottom:9px;}
+.tool-input:focus{border-color:var(--border2);}
+.result-box{margin-top:12px;padding:13px;background:var(--bg3);border-radius:9px;border:1px solid var(--border);}
+.sent-pos{color:var(--green);font-size:1.25rem;font-weight:700;}
+.sent-neg{color:var(--red);font-size:1.25rem;font-weight:700;}
+.conf-bar{height:5px;border-radius:3px;background:var(--border);margin:7px 0;overflow:hidden;}
+.conf-fill{height:100%;border-radius:3px;transition:width .5s;}
+.genre-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.gtag{padding:3px 10px;border-radius:18px;font-size:.76rem;font-weight:500;background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.3);color:var(--gold2);}
+.gtag.low{background:rgba(153,153,187,.06);border-color:rgba(153,153,187,.18);color:var(--txt2);}
+
+/* ── Analytics ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:11px;padding:18px;text-align:center;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:700;color:var(--gold);}
+.stat-lbl{font-size:.75rem;color:var(--txt2);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.chart-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.chart-ttl{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:600;color:var(--gold);margin-bottom:12px;}
+.chart-wrap{position:relative;height:200px;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;border-radius:9px;padding:11px 16px;font-size:.86rem;max-width:320px;display:flex;gap:9px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Error ── */
+.error-box{background:rgba(232,75,106,.1);border:1px solid rgba(232,75,106,.3);border-radius:9px;padding:12px 16px;color:#ff8fa3;margin-bottom:18px;font-size:.84rem;}
+.info-box{background:rgba(0,221,224,.08);border:1px solid rgba(0,221,224,.25);border-radius:9px;padding:12px 16px;color:var(--cyan);margin-bottom:18px;font-size:.84rem;}
+.loading-dots span{display:inline-block;width:6px;height:6px;background:var(--gold);border-radius:50%;margin:0 3px;animation:bounce 1.2s infinite;}
+.loading-dots span:nth-child(2){animation-delay:.2s;}
+.loading-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+@media(max-width:1000px){.cards-grid{grid-template-columns:repeat(3,1fr)}.mood-grid{grid-template-columns:repeat(4,1fr)}.tools-grid{grid-template-columns:1fr}.charts-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.mood-grid{grid-template-columns:repeat(3,1fr)}.sliders-grid{grid-template-columns:1fr}.header{padding:12px 16px}.main{padding:24px 14px 60px}.wl-panel{width:100%}}
+
+/* ── Similar Search ── */
+.similar-search-wrap{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:28px;}
+.similar-search-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--gold);margin-bottom:4px;}
+.similar-search-sub{font-size:.78rem;color:var(--txt2);margin-bottom:14px;}
+.similar-search-row{display:flex;gap:10px;align-items:center;}
+.similar-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:.93rem;outline:none;transition:border-color .2s;}
+.similar-input:focus{border-color:var(--border2);}
+.similar-input::placeholder{color:var(--txt3);}
+.similar-btn{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;transition:all .2s;white-space:nowrap;}
+.similar-results-wrap{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);}
+.similar-results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.similar-results-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--txt);}
+.similar-model-badge{font-size:.7rem;color:var(--cyan);background:rgba(0,221,224,.07);border:1px solid rgba(0,221,224,.22);border-radius:6px;padding:3px 8px;}
+.sim-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all .18s;position:relative;}
+.sim-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5);}
+.sim-card-title{font-size:.84rem;font-weight:600;color:var(--txt);margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sim-card-meta{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
+.sim-score{position:absolute;top:8px;right:8px;font-size:.67rem;font-weight:600;color:var(--gold);background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);border-radius:5px;padding:2px 6px;}
+.sim-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:1000px){.sim-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.sim-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="root">
+  <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.5rem;">
+    <div class="loading-dots" style="transform:scale(1.5);margin-bottom:20px"><span></span><span></span><span></span></div>
+    <div>Loading MoodVerse...</div>
+  </div>
+</div>
+
+<script type="text/babel">
+const {useState, useEffect, useRef, useCallback} = React;
+const API = 'http://localhost:5000/api';
+
+// ── Magnetic Particles ────────────────────────────────────────────────────
+function initParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx    = canvas.getContext('2d');
+  let W, H, mouse={x:-999,y:-999}, particles=[];
+
+  function resize() { W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+
+  function createParticles() {
+    particles = Array.from({length:220}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      ox: 0, oy: 0,
+      vx:0, vy:0,
+      r: Math.random()*1.4+0.3,
+      a: Math.random()*0.7+0.1,
+      hue: Math.random()<0.15 ? 45 : (Math.random()<0.1 ? 180 : 220),
+      sat: Math.random()<0.15 ? 80 : (Math.random()<0.1 ? 90 : 10),
+    }));
+    particles.forEach(p => { p.ox=p.x; p.oy=p.y; });
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    const MAGNETIC_RADIUS = 140;
+    const MAGNETIC_FORCE  = 0.28;
+    const RETURN_FORCE    = 0.06;
+    const DAMPING         = 0.82;
+
+    particles.forEach(p => {
+      const dx = mouse.x - p.x;
+      const dy = mouse.y - p.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+
+      if (dist < MAGNETIC_RADIUS && dist > 0) {
+        const force = (MAGNETIC_RADIUS - dist) / MAGNETIC_RADIUS * MAGNETIC_FORCE;
+        p.vx += (dx/dist) * force * 3;
+        p.vy += (dy/dist) * force * 3;
+      }
+
+      // Return to origin
+      p.vx += (p.ox - p.x) * RETURN_FORCE;
+      p.vy += (p.oy - p.y) * RETURN_FORCE;
+
+      // Slow drift
+      p.vx += (Math.random()-0.5)*0.04;
+      p.vy += (Math.random()-0.5)*0.04;
+
+      p.vx *= DAMPING; p.vy *= DAMPING;
+      p.x += p.vx; p.y += p.vy;
+
+      // Wrap
+      p.ox = (p.ox + 0.06 + W) % W;
+      p.oy = (p.oy + 0.04 + H) % H;
+
+      // Draw
+      const alpha = dist < MAGNETIC_RADIUS
+        ? p.a + (MAGNETIC_RADIUS-dist)/MAGNETIC_RADIUS*0.5
+        : p.a;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r*(dist<MAGNETIC_RADIUS?1.4:1), 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},${p.sat}%,${p.sat>50?80:60}%,${alpha})`;
+      ctx.fill();
+    });
+
+    // Draw connection lines near mouse
+    particles.forEach((p,i) => {
+      const dx=mouse.x-p.x, dy=mouse.y-p.y;
+      if (Math.sqrt(dx*dx+dy*dy) < 100) {
+        particles.slice(i+1).forEach(p2 => {
+          const dx2=p.x-p2.x, dy2=p.y-p2.y;
+          const d2=Math.sqrt(dx2*dx2+dy2*dy2);
+          if (d2 < 60) {
+            ctx.beginPath();
+            ctx.moveTo(p.x,p.y); ctx.lineTo(p2.x,p2.y);
+            ctx.strokeStyle=`rgba(232,184,75,${(1-d2/60)*0.2})`;
+            ctx.lineWidth=0.5; ctx.stroke();
+          }
+        });
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  resize(); createParticles(); draw();
+  window.addEventListener('mousemove', e=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
+  window.addEventListener('resize', ()=>{ resize(); createParticles(); });
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────
+const MOODS=[
+  {id:'happy',emoji:'😊',label:'Happy',c:'#f5c842',cr:'245,200,66'},
+  {id:'melancholic',emoji:'🌧️',label:'Melancholic',c:'#6b8cba',cr:'107,140,186'},
+  {id:'thrilled',emoji:'⚡',label:'Thrilled',c:'#ff4757',cr:'255,71,87'},
+  {id:'romantic',emoji:'💕',label:'Romantic',c:'#ff6b9d',cr:'255,107,157'},
+  {id:'adventurous',emoji:'🌍',label:'Adventurous',c:'#2ed573',cr:'46,213,115'},
+  {id:'nostalgic',emoji:'🕰️',label:'Nostalgic',c:'#ffa502',cr:'255,165,2'},
+  {id:'scared',emoji:'👻',label:'Scared',c:'#a855f7',cr:'168,85,247'},
+  {id:'inspired',emoji:'✨',label:'Inspired',c:'#00dde0',cr:'0,221,224'},
+  {id:'chill',emoji:'😌',label:'Chill',c:'#54a0ff',cr:'84,160,255'},
+  {id:'dark',emoji:'🌑',label:'Dark',c:'#888',cr:'136,136,136'},
+];
+const MOOD_GENRES={
+  happy:['Comedy','Animation','Family','Musical'],melancholic:['Drama','Romance'],
+  thrilled:['Thriller','Mystery','Action','Crime'],romantic:['Romance','Drama','Musical'],
+  adventurous:['Adventure','Action','Sci-Fi','Fantasy'],nostalgic:['Drama','Comedy','Musical','Western'],
+  scared:['Horror','Thriller','Mystery'],inspired:['Drama','Documentary','War'],
+  chill:['Comedy','Animation','Family','Romance'],dark:['Crime','Thriller','Film-Noir','Mystery','Horror'],
+};
+const MOOD_SLIDERS={
+  happy:{energy:65,darkness:10,romance:30,adventure:40},melancholic:{energy:25,darkness:55,romance:60,adventure:10},
+  thrilled:{energy:90,darkness:60,romance:10,adventure:70},romantic:{energy:35,darkness:20,romance:90,adventure:20},
+  adventurous:{energy:75,darkness:30,romance:15,adventure:90},nostalgic:{energy:30,darkness:25,romance:45,adventure:25},
+  scared:{energy:70,darkness:88,romance:5,adventure:40},inspired:{energy:55,darkness:30,romance:35,adventure:50},
+  chill:{energy:20,darkness:10,romance:30,adventure:20},dark:{energy:50,darkness:92,romance:10,adventure:30},
+};
+const SLIDER_DEFS=[
+  {id:'energy',label:'Energy',lo:'Calm',hi:'Intense',c:'#e8b84b',cr:'232,184,75'},
+  {id:'darkness',label:'Darkness',lo:'Bright',hi:'Gritty',c:'#a855f7',cr:'168,85,247'},
+  {id:'romance',label:'Romance',lo:'None',hi:'High',c:'#ff6b9d',cr:'255,107,157'},
+  {id:'adventure',label:'Adventure',lo:'Calm',hi:'Epic',c:'#2ed573',cr:'46,213,115'},
+];
+const DECADES=[1960,1970,1980,1990,2000];
+const MOVIE_FILTER_GENRES=['Action','Comedy','Drama','Horror','Romance','Sci-Fi','Thriller','Animation'];
+const MUSIC_FILTER_GENRES=['pop','rock','hip-hop','jazz','classical','electronic','r&b','indie'];
+const ANIME_FILTER_GENRES=['Action','Comedy','Drama','Romance','Fantasy','Sci-Fi','Horror','Slice of Life'];
+const CATEGORIES=[
+  {id:'movies',label:'Movies',emoji:'🎬',c:'#e8b84b',cr:'232,184,75',bg:'rgba(232,184,75,0.1)',glow:'rgba(232,184,75,0.25)',desc:'Mood-based film picks'},
+  {id:'music',label:'Music',emoji:'🎵',c:'#2ed573',cr:'46,213,115',bg:'rgba(46,213,115,0.1)',glow:'rgba(46,213,115,0.25)',desc:'Spotify track vibes'},
+  {id:'anime',label:'Anime',emoji:'🌸',c:'#a855f7',cr:'168,85,247',bg:'rgba(168,85,247,0.1)',glow:'rgba(168,85,247,0.25)',desc:'MyAnimeList picks'},
+];
+
+const formatTitle = t => {
+  if(!t)return '';
+  return t.replace(/\(\d{4}\)/,'').trim().replace(/^(.*), (The|A|An)$/i, '$2 $1');
+};
+
+async function apiFetch(path,opts={},token=null){
+  const headers={'Content-Type':'application/json'};
+  if(token) headers['Authorization']=`Bearer ${token}`;
+  const res=await fetch(`${API}${path}`,{...opts,headers:{...headers,...(opts.headers||{})}});
+  return res.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function Toast({message,type,onClose}){
+  useEffect(()=>{const t=setTimeout(onClose,4000);return()=>clearTimeout(t);},[]);
+  const styles={
+    error:{bg:'rgba(232,75,106,.15)',border:'rgba(232,75,106,.4)',color:'#ff8fa3',icon:'⚠️'},
+    success:{bg:'rgba(46,213,115,.15)',border:'rgba(46,213,115,.4)',color:'var(--green)',icon:'✅'},
+    info:{bg:'rgba(0,221,224,.12)',border:'rgba(0,221,224,.35)',color:'var(--cyan)',icon:'ℹ️'},
+  }[type]||{bg:'rgba(232,184,75,.12)',border:'rgba(232,184,75,.35)',color:'var(--gold)',icon:'💡'};
+  return(
+    <div className="toast" style={{background:styles.bg,border:`1px solid ${styles.border}`,color:styles.color}}>
+      <span>{styles.icon}</span><span style={{flex:1}}>{message}</span>
+      <button onClick={onClose} style={{background:'none',border:'none',color:styles.color,cursor:'pointer',fontSize:'1rem',lineHeight:1}}>×</button>
+    </div>
+  );
+}
+
+// ── Auth Modal ─────────────────────────────────────────────────────────────
+function AuthModal({mode,onSuccess,onClose}){
+  const [tab,setTab]=useState(mode);
+  const [form,setForm]=useState({username:'',email:'',password:''});
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+  const submit=async()=>{
+    setError('');setLoading(true);
+    try{
+      const data=await apiFetch(tab==='login'?'/auth/login':'/auth/register',
+        {method:'POST',body:JSON.stringify(tab==='login'?{username:form.username,password:form.password}:form)});
+      if(!data.success){setError(data.error);return;}
+      onSuccess(data.token,data.user);
+    }catch{setError('Cannot connect to server.');}finally{setLoading(false);}
+  };
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-title">{tab==='login'?'Welcome Back':'Join MoodVerse'}</div>
+        <div className="modal-sub">{tab==='login'?'Sign in to sync your watchlist across sessions.':'Create your free AI entertainment account.'}</div>
+        {error&&<div className="error-box">{error}</div>}
+        <div className="form-group"><label className="form-label">Username</label>
+          <input className="form-input" value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value}))} placeholder="your_username" onKeyDown={e=>e.key==='Enter'&&submit()}/></div>
+        {tab==='register'&&<div className="form-group"><label className="form-label">Email</label>
+          <input className="form-input" type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="you@email.com"/></div>}
+        <div className="form-group"><label className="form-label">Password</label>
+          <input className="form-input" type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} placeholder="••••••••" onKeyDown={e=>e.key==='Enter'&&submit()}/></div>
+        <button className="btn primary" style={{width:'100%',padding:'11px'}} onClick={submit} disabled={loading}>
+          {loading?'Please wait…':tab==='login'?'Sign In':'Create Account'}</button>
+        <div className="modal-footer">{tab==='login'?<>No account? <button onClick={()=>setTab('register')}>Register</button></>:<>Have account? <button onClick={()=>setTab('login')}>Sign In</button></>}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────
+const SkeletonGrid=()=>(
+  <div className="cards-grid">
+    {Array.from({length:10}).map((_,i)=>(
+      <div key={i} className="skeleton"><div className="sk-p"/>
+        <div className="sk-b"><div className="sk-l w80"/><div className="sk-l w60"/><div className="sk-l w40"/></div></div>
+    ))}
+  </div>
+);
+
+// ── Movie Card ─────────────────────────────────────────────────────────────
+const POSTER_COLORS=['#e8b84b','#a855f7','#00dde0','#ff6b9d','#2ed573','#54a0ff','#ff4757','#ffa502','#6b8cba','#ff6348'];
+
+// ── Server-side Poster Proxy Hook (Movies) ───────────────────────────────
+function useOMDBPoster(initialTitle, initialPoster) {
+  const [poster, setPoster] = useState(initialPoster);
+  useEffect(() => {
+    if (poster || !initialTitle) return;
+    let ignore = false;
+    const cleanTitle = initialTitle.replace(/\s*\(\d{4}\)\s*$/, '').trim();
+    // Use our server-side /api/poster proxy — avoids CORS & key issues
+    fetch(`/api/poster?title=${encodeURIComponent(cleanTitle)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (!ignore && d.success && d.poster && d.poster !== 'N/A') {
+          setPoster(d.poster);
+        }
+      }).catch(()=>{});
+    return () => { ignore = true; };
+  }, [initialTitle, poster]);
+  return poster;
+}
+
+// ── Anime Poster Hook (server-side proxy → avoids CORS + rate limits) ────────
+function useJikanPoster(title, existingPoster) {
+  // Never trust the old myanimelist CDN URLs from the dataset — they're dead.
+  // Always fetch fresh via our server-side proxy which calls Jikan v4 + Kitsu.
+  const [poster, setPoster] = React.useState(null);
+  const fetchedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!title || fetchedRef.current) return;
+    fetchedRef.current = true;
+    let ignore = false;
+    fetch(`/api/anime-poster?title=${encodeURIComponent(title)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (!ignore && d.success && d.poster) {
+          setPoster(d.poster);
+        }
+      })
+      .catch(() => {});
+    return () => { ignore = true; };
+  }, [title]);
+  return poster;
+}
+
+function MovieCard({movie,onWatchlist,inWatchlist}){
+  const title=formatTitle(movie.title);
+  const initial=title.trim()[0]?.toUpperCase()||'?';
+  const colorIdx=title.charCodeAt(0)%POSTER_COLORS.length;
+  const posterColor=POSTER_COLORS[colorIdx];
+  const description=movie.overview||(movie.genres?.length?
+    `${movie.release_year} · ${movie.genres.slice(0,3).join(' · ')}`:`Released ${movie.release_year}`);
+  const displayPoster = useOMDBPoster(title, movie.poster);
+  return(
+    <div className="movie-card">
+      <div className="poster-wrap">
+        {displayPoster?<img src={displayPoster} alt={title} className="poster-img" loading="lazy"/>
+          :<div className="poster-ph" style={{background:`linear-gradient(145deg,${posterColor}22,${posterColor}08)`,border:`1px solid ${posterColor}33`}}>
+            <span style={{fontSize:'2.8rem',fontWeight:700,color:posterColor,fontFamily:"'Cormorant Garamond',serif",opacity:.85}}>{initial}</span>
+            <span style={{fontSize:'.68rem',textAlign:'center',color:'var(--txt2)',padding:'0 8px',marginTop:'4px'}}>{title}</span>
+          </div>}
+        <div className="poster-grad"/>
+        <div className="badge">{Math.round(movie.mood_score*100)}% match</div>
+        <button className={`card-wl-btn ${inWatchlist?'saved':''}`} onClick={e=>{e.stopPropagation();onWatchlist(movie);}}>
+          {inWatchlist?'🔖':'＋'}</button>
+      </div>
+      <div className="card-body">
+        <div className="card-title">{title}</div>
+        <div className="card-meta2">{movie.release_year}</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+          <div className="rating">⭐ {(movie.avg_rating ?? 0).toFixed(1)}</div>
+        </div>
+        <div className="gpills">{(movie.genres||[]).slice(0,3).map(g=><span key={g} className="gpill">{g}</span>)}</div>
+      </div>
+      <div className="card-overlay">
+        <div className="ov-title">{title}</div>
+        <p className="ov-text">{description}</p>
+        <div className="ov-tags">{(movie.genres||[]).map(g=><span key={g} className="ov-tag">{g}</span>)}</div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+
+// ── Music Card ─────────────────────────────────────────────────────────────
+const MUSIC_GENRE_COLORS = {
+  'pop':['#ff6b9d','#e84b6a'],'rock':['#e8b84b','#c8960a'],'hip-hop':['#a855f7','#7c3aed'],
+  'jazz':['#00dde0','#0099cc'],'classical':['#6b8cba','#4a6fa5'],'electronic':['#2ed573','#1db954'],
+  'r&b':['#ff4757','#c44569'],'indie':['#ffa502','#e67e00'],'latin':['#ff6348','#e55039'],
+  'latino':['#ff6348','#e55039'],'reggaeton':['#2ed573','#27ae60'],'dance':['#00dde0','#0099cc'],
+  'default':['#888','#555']
+};
+function MusicCard({track}){
+  const bars=[
+    {label:'Energy',val:track.energy,color:'#e8b84b'},
+    {label:'Vibe',val:track.valence,color:'#2ed573'},
+    {label:'Dance',val:track.danceability,color:'#ff6b9d'},
+  ];
+  const genreKey = (track.genre||'').toLowerCase().split(',')[0].trim();
+  const [c1, c2] = MUSIC_GENRE_COLORS[genreKey] || MUSIC_GENRE_COLORS['default'];
+  const initial = (track.title||'?')[0].toUpperCase();
+  return(
+    <div className="music-card">
+      <div className="music-pop">♪ {track.popularity}</div>
+      {/* Gradient art block replacing plain emoji */}
+      <div style={{
+        width:'100%', aspectRatio:'16/9', borderRadius:'8px', marginBottom:'10px',
+        background:`linear-gradient(135deg, ${c1}33, ${c2}11)`,
+        border:`1px solid ${c1}44`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        position:'relative', overflow:'hidden'
+      }}>
+        <div style={{position:'absolute',inset:0,background:`radial-gradient(circle at 30% 50%, ${c1}22, transparent 60%)`}}/>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'2.2rem',fontWeight:700,color:c1,opacity:.9,zIndex:1,textShadow:`0 0 20px ${c1}88`}}>{initial}</span>
+        <div style={{position:'absolute',bottom:'6px',right:'8px',fontSize:'.62rem',color:c1,opacity:.7,fontWeight:600}}>{(genreKey||'music').toUpperCase()}</div>
+      </div>
+      <div className="music-title">{track.title}</div>
+      <div className="music-artist">{track.artist}</div>
+      <div className="music-genre">{track.genre}</div>
+      {bars.map(b=>(
+        <div key={b.label} className="music-bars">
+          <div className="bar-label">{b.label}</div>
+          <div className="bar-track"><div className="bar-fill" style={{width:`${b.val*100}%`,background:b.color}}/></div>
+        </div>
+      ))}
+      <div className="music-duration">⏱ {track.duration_min} min</div>
+      <div className="badge" style={{position:'absolute',bottom:'12px',right:'12px',top:'auto',left:'auto'}}>
+        {Math.round(track.mood_score*100)}% match
+      </div>
+    </div>
+  );
+}
+
+// ── Anime Card ─────────────────────────────────────────────────────────────
+function AnimeCard({anime,onWatchlist,inWatchlist}){
+  const displayPoster = useJikanPoster(anime.title, anime.poster);
+  return(
+    <div className="anime-card">
+      <div className="anime-poster">
+        {displayPoster
+          ?<img src={displayPoster} alt={anime.title} loading="lazy" onError={(e)=>{e.target.style.display='none';}}/>
+          :<div className="anime-ph" style={{background:'linear-gradient(135deg,#1a0030,#2a0050)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+              <span style={{fontSize:'2.5rem'}}>🌸</span>
+              <span style={{fontSize:'.65rem',color:'#d8b4fe',textAlign:'center',padding:'0 8px'}}>{anime.title}</span>
+            </div>}
+        <div className="anime-grad"/>
+        <div className="anime-type-badge">{anime.media_type}</div>
+        <button className={`card-wl-btn ${inWatchlist?'saved':''}`}
+          style={{zIndex:2}} onClick={e=>{e.stopPropagation();onWatchlist(anime);}}>
+          {inWatchlist?'🔖':'＋'}</button>
+        <div className="badge">{Math.round(anime.mood_score*100)}% match</div>
+      </div>
+      <div className="anime-body">
+        <div className="anime-title">{anime.title}</div>
+        <div className="anime-meta">{anime.episodes} eps</div>
+        <div className="anime-rating">★ {(Number(anime.rating) || 0).toFixed(1)}</div>
+        <div className="gpills" style={{marginTop:'6px'}}>{(anime.genres||[]).slice(0,3).map(g=><span key={g} className="gpill">{g}</span>)}</div>
+      </div>
+      <div className="anime-overlay">
+        <div className="ov-title">{anime.title}</div>
+        <p className="ov-text">{anime.overview||'No synopsis available.'}</p>
+        <div className="ov-tags">{(anime.genres||[]).map(g=><span key={g} className="ov-tag">{g}</span>)}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Similar Content Card ────────────────────────────────────────────────────
+function SimilarCard({item, category, catColor}){
+  const displayPoster = category==='movies' ? useOMDBPoster(formatTitle(item.title||''), null) : null;
+  const animePoster   = category==='anime'  ? useJikanPoster(item.title, item.poster) : null;
+  const simPct = item.similarity != null ? Math.round(item.similarity * 100) : null;
+  return(
+    <div className="sim-card">
+      {simPct != null && <div className="sim-score">{simPct}% similar</div>}
+      {(category==='movies' || category==='anime') && (
+        <div style={{width:'100%',aspectRatio:'2/3',borderRadius:'7px',marginBottom:'8px',overflow:'hidden',
+          background:'linear-gradient(135deg,#0e0e22,#1a1a30)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          {(displayPoster || animePoster)
+            ? <img src={displayPoster||animePoster} alt={item.title} style={{width:'100%',height:'100%',objectFit:'cover'}} loading="lazy"/>
+            : <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.8rem',fontWeight:700,color:catColor,opacity:.7}}>
+                {(item.title||'?')[0].toUpperCase()}
+              </span>}
+        </div>
+      )}
+      {category==='music' && (
+        <div style={{width:'100%',aspectRatio:'16/9',borderRadius:'7px',marginBottom:'8px',background:`linear-gradient(135deg,${catColor}22,${catColor}08)`,
+          border:`1px solid ${catColor}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.5rem',fontWeight:700,color:catColor,opacity:.85}}>
+            {(item.title||'?')[0].toUpperCase()}
+          </span>
+        </div>
+      )}
+      <div className="sim-card-title">{category==='movies' ? formatTitle(item.title) : item.title}</div>
+      {category==='movies' && <div className="sim-card-meta">{item.release_year} · ⭐ {(item.avg_rating||0).toFixed(1)}</div>}
+      {category==='music'  && <div className="sim-card-meta">{item.artist}</div>}
+      {category==='anime'  && <div className="sim-card-meta">★ {(Number(item.rating)||0).toFixed(1)} · {item.episodes} eps</div>}
+      <div className="gpills">
+        {(item.genres||[]).slice(0,2).map(g=><span key={g} className="gpill">{g}</span>)}
+      </div>
+    </div>
+  );
+}
+
+// ── Similar Results Panel ───────────────────────────────────────────────────
+function SimilarResultsPanel({data, category, catColor, onClear}){
+  if(!data) return null;
+  return(
+    <div className="similar-results-wrap">
+      <div className="similar-results-header">
+        <div className="similar-results-title">
+          🔗 Similar to &ldquo;<span style={{color:catColor}}>{data.query_title}</span>&rdquo;
+          <span style={{fontSize:'.82rem',color:'var(--txt2)',fontWeight:400,marginLeft:'8px'}}>— {data.results?.length} results</span>
+        </div>
+        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+          {data.model_used && <span className="similar-model-badge">🤖 {data.model_used}</span>}
+          <button onClick={onClear} style={{background:'none',border:'none',cursor:'pointer',color:'var(--txt2)',fontSize:'1.1rem',lineHeight:1}} title="Clear">×</button>
+        </div>
+      </div>
+      {data.results?.length > 0
+        ? <div className="sim-grid">
+            {data.results.map((item,i) => <SimilarCard key={i} item={item} category={category} catColor={catColor}/>)}
+          </div>
+        : <div style={{color:'var(--txt2)',fontSize:'.86rem',padding:'12px 0'}}>No similar {category} found.</div>
+      }
+    </div>
+  );
+}
+
+// ── Watchlist Panel ────────────────────────────────────────────────────────
+function WatchlistPanel({list,onRemove,onClose}){
+  return(
+    <><div className="wl-overlay" onClick={onClose}/>
+      <div className="wl-panel">
+        <div className="wl-hdr"><div className="wl-ttl">🔖 Watchlist</div><button className="close-btn" onClick={onClose}>×</button></div>
+        {list.length===0?<div className="wl-empty">Empty — add with ＋ button.</div>
+          :list.map(m=>{
+            const t=formatTitle(m.title);
+            return(<div key={m.id||m.movieId} className="wl-item">
+              <div className="wl-ph">🎬</div>
+              <div className="wl-info"><div className="wl-item-title">{t}</div>
+                <div className="wl-item-meta">{m.release_year||''}{m.avg_rating?` · ⭐${Number(m.avg_rating).toFixed(1)}`:''}</div></div>
+              <button className="rm-btn" onClick={()=>onRemove(m.id||m.movieId)}>✕</button>
+            </div>);
+          })
+        }
+      </div></>
+  );
+}
+
+// ── Analytics Page ─────────────────────────────────────────────────────────
+function AnalyticsPage({token}){
+  const [data,setData]=useState(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');
+  const refs={g:useRef(),r:useRef(),t:useRef(),gr:useRef()};const inst=useRef({});
+  useEffect(()=>{
+    apiFetch('/analytics/overview',{method:'GET'},token)
+      .then(d=>{if(d.success)setData(d);else setError(d.error);})
+      .catch(()=>setError('Could not load analytics.'))
+      .finally(()=>setLoading(false));
+  },[]);
+  useEffect(()=>{
+    if(!data)return;
+    if(typeof window.Chart === 'undefined') {
+      setError('Chart.js failed to load from CDN. Please check your connection.');
+      return;
+    }
+    const destroy=k=>{if(inst.current[k]){inst.current[k].destroy();delete inst.current[k];}};
+    try {
+      destroy('g');
+      if(refs.g.current) inst.current.g=new Chart(refs.g.current,{type:'bar',data:{labels:data.genre_counts.map(d=>d.genre),datasets:[{data:data.genre_counts.map(d=>d.count),backgroundColor:'rgba(232,184,75,0.7)',borderColor:'rgba(232,184,75,1)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9999bb',font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#9999bb'},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+      destroy('r');
+      if(refs.r.current) inst.current.r=new Chart(refs.r.current,{type:'doughnut',data:{labels:data.rating_dist.map(d=>`${d.rating}★`),datasets:[{data:data.rating_dist.map(d=>d.count),backgroundColor:['#0d0d25','#1a1a40','#2a2a60','#e8b84b','#f5d080'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9999bb',font:{size:10}}}}}});
+      destroy('t');
+      if(refs.t.current){const top=data.top_movies.slice(0,8);inst.current.t=new Chart(refs.t.current,{type:'bar',data:{labels:top.map(d=>formatTitle(d.title).substring(0,18)),datasets:[{data:top.map(d=>d.avg_rating),backgroundColor:'rgba(0,221,224,0.65)',borderColor:'rgba(0,221,224,1)',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:3.5,max:5,ticks:{color:'#9999bb'},grid:{color:'rgba(255,255,255,0.06)'}},y:{ticks:{color:'#9999bb',font:{size:9}},grid:{display:false}}}}});}
+      destroy('gr');
+      if(refs.gr.current){const gr=data.genre_ratings.slice(0,12);inst.current.gr=new Chart(refs.gr.current,{type:'bar',data:{labels:gr.map(d=>d.genre),datasets:[{data:gr.map(d=>d.avg_rating),backgroundColor:'rgba(168,85,247,0.65)',borderColor:'rgba(168,85,247,1)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9999bb',font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'}},y:{min:3,ticks:{color:'#9999bb'},grid:{color:'rgba(255,255,255,0.06)'}}}}});}
+    } catch(err) {
+      console.error(err);
+      setError('Error rendering charts.');
+    }
+  },[data]);
+  if(loading)return <div style={{textAlign:'center',padding:'60px'}}><div className="loading-dots"><span/><span/><span/></div></div>;
+  if(error)return <div className="error-box">{error}</div>;
+  if(!data)return null;
+  return(
+    <div>
+      <div className="page-title">Analytics Dashboard</div>
+      <div className="page-sub">MovieLens 1M dataset — {data.summary.total_ratings.toLocaleString()} ratings analyzed.</div>
+      <div className="stats-grid">
+        {[{l:'Total Ratings',v:data.summary.total_ratings.toLocaleString()},{l:'Movies',v:data.summary.total_movies.toLocaleString()},{l:'Users',v:data.summary.total_users.toLocaleString()},{l:'Avg Rating',v:data.summary.mean_rating}].map(s=>(
+          <div key={s.l} className="stat-card"><div className="stat-val">{s.v}</div><div className="stat-lbl">{s.l}</div></div>
+        ))}
+      </div>
+      <div className="charts-grid">
+        <div className="chart-card"><div className="chart-ttl">Movies per Genre</div><div className="chart-wrap"><canvas ref={refs.g}/></div></div>
+        <div className="chart-card"><div className="chart-ttl">Rating Distribution</div><div className="chart-wrap"><canvas ref={refs.r}/></div></div>
+        <div className="chart-card"><div className="chart-ttl">Top Rated Movies</div><div className="chart-wrap"><canvas ref={refs.t}/></div></div>
+        <div className="chart-card"><div className="chart-ttl">Avg Rating per Genre</div><div className="chart-wrap"><canvas ref={refs.gr}/></div></div>
+      </div>
+    </div>
+  );
+}
+
+
+function ModelBadge({modelUsed,modelType}){
+  if(!modelUsed) return null;
+  return(
+    <div style={{marginTop:'8px',padding:'5px 9px',background:'rgba(0,221,224,.07)',border:'1px solid rgba(0,221,224,.22)',borderRadius:'7px',fontSize:'.7rem',color:'var(--cyan)',display:'flex',gap:'6px',alignItems:'center',flexWrap:'wrap'}}>
+      <span style={{opacity:.6}}>🤖 Model:</span>
+      <span style={{fontWeight:600}}>{modelUsed}</span>
+      {modelType&&<span style={{opacity:.5}}>· {modelType}</span>}
+    </div>
+  );
+}
+function AIToolsPage({token}){
+  const [reviewText,setReviewText]=useState('');const [sentResult,setSentResult]=useState(null);const [sentLoading,setSentLoading]=useState(false);
+  const [movieTitle,setMovieTitle]=useState('');const [movieYear,setMovieYear]=useState('');const [genreResult,setGenreResult]=useState(null);const [genreLoading,setGenreLoading]=useState(false);
+  const [toast,setToast]=useState(null);
+  const showToast=(message,type='error')=>setToast({message,type});
+  const analyzeSentiment=async()=>{
+    if(!reviewText.trim())return;setSentLoading(true);setSentResult(null);
+    try{
+      const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),60000);
+      const res=await fetch(`${API}/sentiment`,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':`Bearer ${token}`}:{})},body:JSON.stringify({text:reviewText}),signal:controller.signal});
+      clearTimeout(timer);const d=await res.json();
+      if(d.success){setSentResult(d);showToast('Analysis complete!','success');}
+      else showToast(d.error||'Failed.','error');
+    }catch(e){if(e.name==='AbortError')showToast('Timeout — try again.','error');else showToast('Cannot connect to server.','error');}
+    finally{setSentLoading(false);}
+  };
+  const predictGenres=async()=>{
+    if(!movieTitle.trim())return;const year=parseInt(movieYear)||2000;setGenreLoading(true);setGenreResult(null);
+    try{
+      const d=await apiFetch('/predict-genres',{method:'POST',body:JSON.stringify({title:movieTitle,release_year:year})},token);
+      if(d.success){setGenreResult(d);showToast(d.genres.length>0?`Predicted ${d.genres.length} genre(s)!`:'No strong match.','success');}
+      else showToast(d.error||'Failed.','error');
+    }catch{showToast('Cannot connect to server.','error');}finally{setGenreLoading(false);}
+  };
+  return(
+    <div>
+      {toast&&<Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)}/>}
+      <div className="page-title">AI Tools</div>
+      <div className="page-sub">Live AI/ML models powering MoodVerse intelligence.</div>
+      <div className="tools-grid">
+        <div className="tool-card">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'4px'}}>
+            <div className="tool-title">🤖 Sentiment Analyzer</div>
+            {reviewText&&<button className="btn" style={{padding:'3px 9px',fontSize:'.73rem'}} onClick={()=>{setReviewText('');setSentResult(null);}}>Clear</button>}
+          </div>
+          <div className="tool-sub">HuggingFace DistilBERT Transformer — paste any movie review.</div>
+          <textarea className="tool-textarea" value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder="e.g. This movie was absolutely brilliant..."/>
+          <button className="btn primary" onClick={analyzeSentiment} disabled={sentLoading||!reviewText.trim()}>
+            {sentLoading?<span>Analyzing <span className="loading-dots"><span/><span/><span/></span></span>:'Analyze Sentiment'}</button>
+          {sentLoading&&<div style={{fontSize:'.75rem',color:'var(--txt2)',marginTop:'6px'}}>Running DistilBERT Transformer model...</div>}
+          {sentResult&&<div className="result-box">
+            <div className={sentResult.sentiment==='Positive'?'sent-pos':'sent-neg'}>{sentResult.sentiment==='Positive'?'😊':'😞'} {sentResult.sentiment}</div>
+            <div style={{fontSize:'.78rem',color:'var(--txt2)',marginTop:'5px'}}>Confidence: {(sentResult.confidence*100).toFixed(1)}%</div>
+            <div className="conf-bar"><div className="conf-fill" style={{width:`${sentResult.confidence*100}%`,background:sentResult.sentiment==='Positive'?'var(--green)':'var(--red)'}}/></div>
+            <ModelBadge modelUsed={sentResult.model_used} modelType={sentResult.model_type}/>
+          </div>}
+        </div>
+        <div className="tool-card">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'4px'}}>
+            <div className="tool-title">🎯 Genre Predictor</div>
+            {(movieTitle||genreResult)&&<button className="btn" style={{padding:'3px 9px',fontSize:'.73rem'}} onClick={()=>{setMovieTitle('');setMovieYear('');setGenreResult(null);}}>Clear</button>}
+          </div>
+          <div className="tool-sub">TF-IDF + sklearn classifier — enter any movie title.</div>
+          <input className="tool-input" value={movieTitle} onChange={e=>setMovieTitle(e.target.value)} placeholder="e.g. Star Wars" onKeyDown={e=>e.key==='Enter'&&predictGenres()}/>
+          <input className="tool-input" type="text" inputMode="numeric" value={movieYear} onChange={e=>setMovieYear(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="Year e.g. 1999 (optional)"/>
+          <button className="btn primary" onClick={predictGenres} disabled={genreLoading||!movieTitle.trim()}>{genreLoading?'Predicting…':'Predict Genres'}</button>
+          <div style={{fontSize:'.73rem',color:'var(--txt2)',marginTop:'5px'}}>Best with: Star Wars, Titanic, The Matrix, Inception…</div>
+          {genreResult&&<div className="result-box">
+            <div className="genre-tags">
+              {genreResult.genres.length>0?genreResult.genres.map(g=><span key={g} className="gtag">{g}</span>)
+                :<span style={{color:'var(--txt2)',fontSize:'.8rem'}}>No genres above threshold.</span>}
+            </div>
+            {genreResult.all_scores&&<><div style={{fontSize:'.73rem',color:'var(--txt2)',margin:'8px 0 5px'}}>All scores:</div>
+              <div className="genre-tags">{genreResult.all_scores.slice(0,10).map(s=><span key={s.genre} className={`gtag ${s.confidence<0.3?'low':''}`}>{s.genre} {(s.confidence*100).toFixed(0)}%</span>)}</div></> }
+            <ModelBadge modelUsed={genreResult.model_used} modelType={genreResult.model_type}/>
+          </div>}
+        </div>
+      </div>
+      <div className="info-box">🧠 <strong>AI/ML Domain:</strong> DistilBERT Transformer (HuggingFace) for sentiment · TF-IDF cosine similarity (sklearn) for genre prediction · NLP mood detection powering the Discover tab.</div>
+    </div>
+  );
+}
+
+// ── Recommend Page (Movies + Music + Anime) ────────────────────────────────
+function RecommendPage({token,category,watchlist,setWatchlist,movies,setMovies,hasResults,setHasResults}){
+  const [tab,setTab]=useState('buttons');
+  const [mood,setMood]=useState([]);
+  const [sliders,setSliders]=useState({energy:50,darkness:20,romance:30,adventure:50});
+  const [moodText,setMoodText]=useState('');const [aiExpl,setAiExpl]=useState('');const [aiLoading,setAiLoading]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [decadeFilter,setDecadeFilter]=useState(null);const [genreFilter,setGenreFilter]=useState(null);
+  const [error,setError]=useState('');const [showWL,setShowWL]=useState(false);
+  const [toast,setToast]=useState(null);
+  // — Similar Search state —
+  const [simQuery,setSimQuery]=useState('');
+  const [simLoading,setSimLoading]=useState(false);
+  const [simData,setSimData]=useState(null);
+  const simRef=useRef(null);
+  const resultsRef=useRef(null);
+  const cat=CATEGORIES.find(c=>c.id===category)||CATEGORIES[0];
+
+  // Reset on category change
+  useEffect(()=>{ setMovies([]); setHasResults(false); setMood([]); setGenreFilter(null); setDecadeFilter(null); setSimData(null); setSimQuery(''); },[category]);
+
+  const searchSimilar=async()=>{
+    if(!simQuery.trim())return;
+    setSimLoading(true);setSimData(null);
+    const endpointMap={movies:'/similar/movies',music:'/similar/music',anime:'/similar/anime'};
+    try{
+      const d=await apiFetch(endpointMap[category],{method:'POST',body:JSON.stringify({title:simQuery.trim(),n:10})},token);
+      if(d.success){setSimData(d);setTimeout(()=>simRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),120);}
+      else setToast({message:d.error||'Not found in dataset.',type:'error'});
+    }catch{setToast({message:'Cannot connect to server. Is app.py running?',type:'error'});}
+    finally{setSimLoading(false);}
+  };
+
+  const selectMood=m=>{
+    setMood(prev => {
+      const next = prev.includes(m.id) ? prev.filter(x => x !== m.id) : [...prev, m.id];
+      // Average sliders across all selected moods so multi-mood picks blend correctly
+      const active = next.length > 0 ? next : [m.id];
+      const keys = ['energy','darkness','romance','adventure'];
+      const avg = {};
+      keys.forEach(k => { avg[k] = Math.round(active.reduce((s,id)=>(s + (MOOD_SLIDERS[id]?.[k] ?? 50)), 0) / active.length); });
+      setSliders(avg);
+      return next;
+    });
+    setAiExpl('');
+  };
+  const updateSlider=(k,v)=>{setSliders(p=>({...p,[k]:v}));};
+
+  const interpretMood=async()=>{
+    if(!moodText.trim())return;setAiLoading(true);setAiExpl('');setError('');
+    try{
+      const d=await apiFetch('/interpret-mood',{method:'POST',body:JSON.stringify({text:moodText})},token);
+      if(!d.success){setError(d.error);return;}
+      setMood([d.mood_label]);setSliders({energy:d.energy,darkness:d.darkness,romance:d.romance,adventure:d.adventure});
+      const modelInfo=d.model_used?` [${d.model_used}]`:'';
+      setAiExpl((d.explanation||'Mood detected.')+modelInfo);setTab('sliders');
+    }catch{setError('Cannot connect to server.');}finally{setAiLoading(false);}
+  };
+
+  const fetchRecs=async(dF=decadeFilter,gF=genreFilter)=>{
+    setLoading(true);setError('');
+    try{
+      let results=[];
+      // Use the last selected mood (most recent) as dominant for music/anime APIs
+      let dMood = mood.length > 0 ? mood[mood.length - 1] : null;
+      if(mood.length === 0){
+        let max=-1;
+        if(sliders.energy>max){max=sliders.energy;dMood=sliders.energy>60?'thrilled':'chill';}
+        if(sliders.darkness>max){max=sliders.darkness;dMood='dark';}
+        if(sliders.romance>max){max=sliders.romance;dMood='romantic';}
+        if(sliders.adventure>max){max=sliders.adventure;dMood='adventurous';}
+        if(!dMood) dMood='happy';
+      }
+
+      if(category==='movies'){
+        const genres = mood.length > 0 
+           ? [...new Set(mood.flatMap(m => MOOD_GENRES[m]))]
+           : MOOD_GENRES[dMood];
+        const d=await apiFetch('/recommend',{method:'POST',body:JSON.stringify({genres,...sliders,decade_filter:dF,genre_filter:gF,mood:dMood})},token);
+        if(!d.success){setError(d.error);return;}
+        results=d.movies;
+      } else if(category==='music'){
+        const d=await apiFetch('/recommend/music',{method:'POST',body:JSON.stringify({mood:dMood,genre_filter:gF})},token);
+        if(!d.success){setError(d.error||'Music recommendations failed.');return;}
+        results=d.tracks;
+      } else if(category==='anime'){
+        const d=await apiFetch('/recommend/anime',{method:'POST',body:JSON.stringify({mood:dMood,genre_filter:gF})},token);
+        if(!d.success){setError(d.error||'Anime recommendations failed.');return;}
+        results=d.anime;
+      }
+      setMovies(results);setHasResults(true);
+      setTimeout(()=>resultsRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }catch{setError('Cannot connect to server. Is app.py running?');}finally{setLoading(false);}
+  };
+
+  const applyDecade=d=>{const n=decadeFilter===d?null:d;setDecadeFilter(n);if(hasResults)fetchRecs(n,genreFilter);};
+  const applyGenre=g=>{const n=genreFilter===g?null:g;setGenreFilter(n);if(hasResults)fetchRecs(decadeFilter,n);};
+
+  const toggleWL=item=>{
+    const id=item.id||item.movieId;
+    const exists=watchlist.some(m=>(m.id||m.movieId)===id);
+    if(exists){
+      setWatchlist(p=>p.filter(m=>(m.id||m.movieId)!==id));
+      if(token) apiFetch(`/watchlist/remove/${id}`,{method:'DELETE'},token);
+    } else {
+      setWatchlist(p=>[...p,item]);
+      if(token) apiFetch('/watchlist/add',{method:'POST',body:JSON.stringify(item)},token);
+    }
+    setToast({message:exists?'Removed from watchlist':'Added to watchlist!',type:exists?'info':'success'});
+  };
+
+  const activeMood=mood.length > 0 ? MOODS.find(m=>m.id===mood[mood.length-1]) : null;
+  const moodLabels=mood.map(mID => MOODS.find(x=>x.id===mID)?.label).filter(Boolean).join(' + ');
+  const filterGenres=category==='music'?MUSIC_FILTER_GENRES:category==='anime'?ANIME_FILTER_GENRES:MOVIE_FILTER_GENRES;
+
+  return(
+    <div>
+      {toast&&<Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)}/>}
+
+      {/* Page header */}
+      <div style={{marginBottom:'28px'}}>
+        <div className="page-title" style={{color:cat.c}}>
+          {cat.emoji} {cat.label} Recommendations
+        </div>
+        <div className="page-sub">Select your mood and discover {cat.label.toLowerCase()} that match how you feel right now.</div>
+      </div>
+
+      {error&&<div className="error-box">{error}</div>}
+
+      {/* Mood Panel */}
+      <div className="mood-panel">
+        <div className="tabs">
+          {[{id:'buttons',label:'🎭 Mood'},{id:'sliders',label:'🎚️ Vibe Sliders'},{id:'text',label:'💬 Describe It'}].map(t=>(
+            <button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
+        <div className="tab-body">
+          {tab==='buttons'&&(
+            <div className="mood-grid">
+              {MOODS.map(m=>(
+                <button key={m.id} className={`mood-btn ${mood.includes(m.id)?'selected':''}`}
+                  style={{'--c':m.c,'--cr':m.cr}} onClick={()=>selectMood(m)}>
+                  <span className="mood-emoji">{m.emoji}</span>{m.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {tab==='sliders'&&(
+            <div>
+              {activeMood&&<div style={{marginBottom:'16px',padding:'8px 12px',background:`rgba(${activeMood.cr},0.08)`,border:`1px solid rgba(${activeMood.cr},0.25)`,borderRadius:'8px',color:activeMood.c,fontSize:'.81rem'}}>
+                {activeMood.emoji} Tuned for <strong>{moodLabels}</strong>{aiExpl&&<span style={{color:'var(--txt2)'}}> — {aiExpl}</span>}
+              </div>}
+              <div className="sliders-grid">
+                {SLIDER_DEFS.map(def=>(
+                  <div key={def.id} className="slider-row">
+                    <label><span>{def.label}</span><span>{sliders[def.id]}</span></label>
+                    <input type="range" min="0" max="100" value={sliders[def.id]}
+                      style={{'--c':def.c,'--cr':def.cr,'--pct':sliders[def.id]+'%'}}
+                      onChange={e=>updateSlider(def.id,parseInt(e.target.value))}/>
+                    <div className="slider-labels"><span>{def.lo}</span><span>{def.hi}</span></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {tab==='text'&&(
+            <div>
+              <textarea className="mood-textarea" value={moodText} onChange={e=>setMoodText(e.target.value)}
+                placeholder="e.g. I had a long week and want something to lift my spirits…" onKeyDown={e=>e.key==='Enter'&&e.ctrlKey&&interpretMood()}/>
+              <div className="interpret-row">
+                <button className="ai-btn" onClick={interpretMood} disabled={aiLoading||!moodText.trim()}>
+                  {aiLoading?'Reading mood…':'✨ Interpret with AI'}</button>
+                {aiExpl&&<div className="ai-expl">💡 {aiExpl}</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Find btn */}
+      <div className="get-btn-wrap">
+        <button className="get-btn" style={{background:`linear-gradient(135deg,${cat.c},${cat.c}aa)`}}
+          onClick={()=>fetchRecs()} disabled={loading}>
+          <span className="shimmer"/>
+          {loading?'Finding…':`${cat.emoji} Find My ${cat.label}`}
+        </button>
+      </div>
+
+      {/* ── Similar Search Box ── */}
+      <div className="similar-search-wrap">
+        <div className="similar-search-title">🔍 Find Similar {cat.label}</div>
+        <div className="similar-search-sub">Enter a {category==='music'?'track name':category==='anime'?'anime title':'movie title'} to discover similar {cat.label.toLowerCase()} using AI similarity search.</div>
+        <div className="similar-search-row">
+          <input
+            id={`similar-search-${category}`}
+            className="similar-input"
+            value={simQuery}
+            onChange={e=>setSimQuery(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&searchSimilar()}
+            placeholder={category==='movies'?'e.g. Inception, Toy Story, The Matrix…':category==='music'?'e.g. Shape of You, Blinding Lights…':'e.g. Attack on Titan, Naruto…'}
+          />
+          <button
+            className="similar-btn"
+            style={{background:`linear-gradient(135deg,${cat.c},${cat.c}aa)`,color:'#000'}}
+            onClick={searchSimilar}
+            disabled={simLoading||!simQuery.trim()}
+          >
+            {simLoading?'Searching…':'Find Similar'}
+          </button>
+          {simData&&<button onClick={()=>{setSimData(null);setSimQuery('');}} style={{background:'none',border:'1px solid var(--border)',borderRadius:'8px',padding:'9px 13px',cursor:'pointer',color:'var(--txt2)',fontSize:'.82rem'}}>Clear</button>}
+        </div>
+        <div ref={simRef}>
+          <SimilarResultsPanel data={simData} category={category} catColor={cat.c} onClear={()=>{setSimData(null);setSimQuery('');}}/>
+        </div>
+      </div>
+
+      {/* Watchlist toggle */}
+      <div style={{textAlign:'right',marginBottom:'14px'}}>
+        <button className="btn" onClick={()=>setShowWL(true)}>
+          🔖 Watchlist{watchlist.length>0&&<span style={{background:'var(--gold)',color:'#000',borderRadius:'50%',width:'16px',height:'16px',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:'.68rem',fontWeight:700,marginLeft:'6px'}}>{watchlist.length}</span>}
+        </button>
+      </div>
+
+      {/* Results */}
+      <div ref={resultsRef}>
+        {hasResults&&(
+          <>
+            <div className="filter-bar">
+              {category==='movies'&&<><span className="filter-label">Decade</span>
+                <div className="filter-pills">{DECADES.map(d=><span key={d} className={`pill ${decadeFilter===d?'active':''}`} onClick={()=>applyDecade(d)}>{d}s</span>)}</div>
+                <div className="filter-sep"/></>}
+              <span className="filter-label">Genre</span>
+              <div className="filter-pills">{filterGenres.map(g=><span key={g} className={`pill ${genreFilter===g?'active':''}`} onClick={()=>applyGenre(g)}>{g}</span>)}</div>
+            </div>
+            {!loading&&<div className="section-title">
+              {mood.length > 0 ? `${activeMood.emoji} ${moodLabels} ${cat.label}`:`${cat.emoji} ${cat.label} Picks`}
+              <span style={{fontSize:'.86rem',fontWeight:400,color:'var(--txt2)',marginLeft:'10px'}}>— {movies.length} results</span>
+            </div>}
+            {loading?<SkeletonGrid/>:(
+              <div className="cards-grid">
+                {category==='movies'&&movies.map(m=><MovieCard key={m.id} movie={m} onWatchlist={toggleWL} inWatchlist={watchlist.some(w=>(w.id||w.movieId)===m.id)}/>)}
+                {category==='music'&&movies.map(t=><MusicCard key={t.id} track={t}/>)}
+                {category==='anime'&&movies.map(a=><AnimeCard key={a.id} anime={a} onWatchlist={toggleWL} inWatchlist={watchlist.some(w=>(w.id||w.movieId)===a.id)}/>)}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {showWL&&<WatchlistPanel list={watchlist}
+        onRemove={id=>{setWatchlist(p=>p.filter(m=>(m.id||m.movieId)!==id));if(token)apiFetch(`/watchlist/remove/${id}`,{method:'DELETE'},token);}}
+        onClose={()=>setShowWL(false)}/>}
+    </div>
+  );
+}
+
+// ── Profile Page ──────────────────────────────────────────────────────────
+function ProfilePage({token, user, onLogout}){
+  const [stats, setStats]=useState(null);
+  const [loading, setLoading]=useState(true);
+  const [error, setError]=useState('');
+
+  useEffect(()=>{
+    if(!token) return;
+    apiFetch('/analytics/user',{method:'GET'},token)
+      .then(d=>{if(d.success)setStats(d);else setError(d.error);})
+      .catch(()=>setError('Could not load profile stats.'))
+      .finally(()=>setLoading(false));
+  },[token]);
+
+  if(!user) return <div className="error-box">Please log in to view profile.</div>;
+  if(loading) return <div style={{textAlign:'center',padding:'60px'}}><div className="loading-dots"><span/><span/><span/></div></div>;
+  if(error) return <div className="error-box">{error}</div>;
+
+  return(
+    <div>
+      <div className="page-title">User Profile</div>
+      <div className="page-sub">Welcome back, {user.username}!</div>
+      
+      <div className="section-title">Your Activity</div>
+      <div className="stats-grid" style={{gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))'}}>
+        <div className="stat-card">
+          <div className="stat-val">{stats.recommendations_run}</div>
+          <div className="stat-lbl">Moods Detected</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-val">{stats.reviews_analyzed}</div>
+          <div className="stat-lbl">Reviews Analyzed</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-val">{stats.watchlist_count}</div>
+          <div className="stat-lbl">Watchlist Items</div>
+        </div>
+      </div>
+
+      {Object.keys(stats.sentiment_breakdown||{}).length > 0 && (
+        <div style={{marginTop:'32px'}}>
+          <div className="section-title">Sentiment History</div>
+          <div style={{display:'flex', gap:'12px', flexWrap:'wrap'}}>
+            {Object.entries(stats.sentiment_breakdown).map(([k,v])=>(
+              <div key={k} style={{padding:'12px 20px', background:'var(--glass)', border:'1px solid var(--border)', borderRadius:'12px'}}>
+                <span style={{color:k==='Positive'?'var(--green)':'var(--red)', fontWeight:600, fontSize:'1.1rem'}}>{k}</span>
+                <span style={{marginLeft:'12px', color:'var(--txt2)'}}>{v} analyzes</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div style={{marginTop:'48px'}}>
+        <button className="btn danger" onClick={onLogout}>Sign Out</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Landing Page ──────────────────────────────────────────────────────────
+function Landing({onEnter}){
+  const [exiting,setExiting]=useState(false);
+  const enter=()=>{setExiting(true);setTimeout(onEnter,600);};
+  return(
+    <div className={`landing ${exiting?'exit':''}`}>
+      <div className="landing-glow"/>
+      <div className="landing-title">
+        <span className="mood">Mood</span><span className="verse">Verse</span>
+      </div>
+      <div className="landing-tagline">
+        Your AI-powered entertainment universe.<br/>
+        Movies, Music &amp; Anime — curated to your mood.
+      </div>
+      <div className="landing-categories">
+        {CATEGORIES.map(cat=>(
+          <div key={cat.id} className="cat-card" style={{'--cat-bg':cat.bg,'--cat-c':cat.c,'--cat-glow':cat.glow}}>
+            <span className="cat-icon">{cat.emoji}</span>
+            <div className="cat-name">{cat.label}</div>
+            <div className="cat-desc">{cat.desc}</div>
+          </div>
+        ))}
+      </div>
+      <button className="enter-btn" onClick={enter}>Enter the Verse →</button>
+    </div>
+  );
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────
+function App(){
+  const [showLanding,setShowLanding]=useState(true);
+  const [page,setPage]=useState('recommend');
+  const [category,setCategory]=useState('movies');
+  const [token,setToken]=useState(()=>localStorage.getItem('mv_token')||'');
+  const [user,setUser]=useState(()=>{try{return JSON.parse(localStorage.getItem('mv_user')||'null')}catch{return null;}});
+  const [showAuth,setShowAuth]=useState(false);const [authMode,setAuthMode]=useState('login');
+  const [watchlist,setWatchlist]=useState([]);
+  const [movies,setMovies]=useState([]);const [hasResults,setHasResults]=useState(false);
+
+  useEffect(()=>{initParticles();},[]);
+  useEffect(()=>{
+    if(token) apiFetch('/watchlist',{method:'GET'},token)
+      .then(d=>{if(d.success)setWatchlist(d.watchlist.map(w=>({...w,id:w.movie_id||w.id})));})
+      .catch(()=>{});
+  },[token]);
+
+  const onAuthSuccess=(t,u)=>{
+    setToken(t);setUser(u);
+    localStorage.setItem('mv_token',t);localStorage.setItem('mv_user',JSON.stringify(u));
+    setShowAuth(false);
+  };
+  const logout=()=>{
+    if(token)apiFetch('/auth/logout',{method:'POST'},token).catch(()=>{});
+    setToken('');setUser(null);setWatchlist([]);
+    localStorage.removeItem('mv_token');localStorage.removeItem('mv_user');
+  };
+
+  const activeCat=CATEGORIES.find(c=>c.id===category)||CATEGORIES[0];
+
+  if(showLanding)return <Landing onEnter={()=>setShowLanding(false)}/>;
+
+  return(
+    <div>
+      <header className="header">
+        <div>
+          <div className="logo"><span className="m">Mood</span><span className="v">Verse</span></div>
+          <div className="logo-sub">AI Entertainment Intelligence</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <nav className="nav">
+            {[{id:'recommend',label:'Discover'},{id:'tools',label:'AI Tools'},{id:'analytics',label:'Analytics'}].map(p=>(
+              <button key={p.id} className={`nav-btn ${page===p.id?'active':''}`} onClick={()=>setPage(p.id)}>{p.label}</button>
+            ))}
+          </nav>
+          {page==='recommend'&&(
+            <div className="cat-nav">
+              {CATEGORIES.map(cat=>(
+                <button key={cat.id} className={`cat-btn ${category===cat.id?'active':''}`}
+                  style={category===cat.id?{'--cat-c':cat.c,'--cat-cr':cat.cr}:{}}
+                  onClick={()=>{if(category!==cat.id){setCategory(cat.id);setMovies([]);setHasResults(false);}}}>
+                  {cat.emoji} {cat.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="header-right">
+          {user
+            ?<><div className="user-chip" onClick={()=>setPage('profile')} style={{cursor:'pointer'}} title="View Profile"><div className="user-av">{user.username[0].toUpperCase()}</div>{user.username}</div>
+              <button className="btn danger" onClick={logout}>Sign Out</button></>
+            :<><button className="btn" onClick={()=>{setAuthMode('login');setShowAuth(true);}}>Sign In</button>
+              <button className="btn primary" onClick={()=>{setAuthMode('register');setShowAuth(true);}}>Register</button></>
+          }
+        </div>
+      </header>
+
+      <main className="main">
+        {page==='recommend'&&<RecommendPage token={token} category={category} watchlist={watchlist} setWatchlist={setWatchlist} movies={movies} setMovies={setMovies} hasResults={hasResults} setHasResults={setHasResults}/>}
+        {page==='tools'&&<AIToolsPage token={token}/>}
+        {page==='analytics'&&<AnalyticsPage token={token}/>}
+        {page==='profile'&&<ProfilePage token={token} user={user} onLogout={logout}/>}
+      </main>
+
+      <footer style={{borderTop:'1px solid var(--border)',padding:'28px 48px',background:'rgba(4,4,14,0.95)',marginTop:'auto'}}>
+        <div style={{maxWidth:'1220px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'16px'}}>
+          <div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',fontWeight:700}}>
+              <span style={{color:'var(--gold)'}}>Mood</span><span style={{color:'var(--txt)',fontWeight:400}}>Verse</span>
+            </div>
+            <div style={{fontSize:'.73rem',color:'var(--txt2)',marginTop:'3px'}}>AI Entertainment Intelligence · AIML Domain Project</div>
+          </div>
+          <div style={{display:'flex',gap:'24px',flexWrap:'wrap'}}>
+            {[{label:'🤖 DistilBERT',desc:'Sentiment AI'},{label:'📊 TF-IDF',desc:'Genre ML'},{label:'🧠 NLP',desc:'Mood Detection'},{label:'🎬 MovieLens 1M',desc:'Recommendation Data'}].map(t=>(
+              <div key={t.label} style={{textAlign:'center'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'var(--gold)'}}>{t.label}</div>
+                <div style={{fontSize:'.68rem',color:'var(--txt2)'}}>{t.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:'.72rem',color:'var(--txt2)',textAlign:'right'}}>
+            © 2026 MoodVerse · Built with React, Flask & AI/ML<br/>
+            <span style={{color:'var(--gold)',opacity:.7}}>Domain: Artificial Intelligence & Machine Learning</span>
+          </div>
+        </div>
+      </footer>
+
+      {showAuth&&<AuthModal mode={authMode} onSuccess={onAuthSuccess} onClose={()=>setShowAuth(false)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

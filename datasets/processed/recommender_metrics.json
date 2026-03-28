@@ -1,0 +1,12 @@
+{
+  "svd_rmse": 1.1544,
+  "svd_mae": 0.9058,
+  "ncf_rmse": 1.0536,
+  "ncf_mae": 0.8402,
+  "hybrid_precision_at_k": 0.4546,
+  "hybrid_recall_at_k": 0.4877,
+  "hybrid_f1_at_k": 0.4706,
+  "K": 10,
+  "eval_method": "test_items_plus_negatives",
+  "n_negatives": 100
+}

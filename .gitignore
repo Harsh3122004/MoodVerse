@@ -1,0 +1,35 @@
+# Virtual environments
+venv/
+env/
+.env
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Large datasets that exceed GitHub's 100MB limit
+datasets/raw/ml-*/
+datasets/raw/*.csv
+datasets/processed/*.csv
+!datasets/processed/.gitkeep
+
+# IDE dirs
+.vscode/
+.idea/
+
+# Local User Database
+moodflix.db
+
+# Large binaries or models
+# GitHub blocks files >100MB. svd_artifacts.pkl is ~178MB.
+models/svd_artifacts.pkl
+# models/*.h5
+# models/*.keras
+# models/*.joblib
+
+# OS generated files
+.DS_Store
+Thumbs.db
