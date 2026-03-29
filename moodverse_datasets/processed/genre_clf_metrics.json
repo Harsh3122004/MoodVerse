@@ -1,0 +1,30 @@
+{
+  "hamming_loss": 0.1968,
+  "f1_macro": 0.2394,
+  "f1_micro": 0.329,
+  "f1_samples": 0.3285,
+  "precision_macro": 0.1904,
+  "recall_macro": 0.4411,
+  "n_labels": 19,
+  "labels": [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Children",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Fantasy",
+    "Film-Noir",
+    "Horror",
+    "IMAX",
+    "Musical",
+    "Mystery",
+    "Romance",
+    "Sci-Fi",
+    "Thriller",
+    "War",
+    "Western"
+  ]
+}

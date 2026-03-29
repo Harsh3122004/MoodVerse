@@ -1,0 +1,13 @@
+feature,importance
+engagement_days,0.3218651
+days_since_last,0.19834396
+ratings_per_day,0.1768012
+n_ratings,0.04544053
+std_rating,0.04302711
+occupation,0.042190347
+age,0.037619334
+n_unique_movies,0.037154935
+avg_rating,0.03420114
+gender_enc,0.03297487
+min_rating,0.03038137
+max_rating,0.0

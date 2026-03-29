@@ -1,0 +1,61 @@
+{
+  "method": "Stratified K-Fold Per-Label Optimization",
+  "hamming_loss": 0.186,
+  "f1_macro": 0.263,
+  "precision_macro": 0.209,
+  "recall_macro": 0.402,
+  "accuracy": 0.0,
+  "n_labels": 19,
+  "labels": [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Children",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Fantasy",
+    "Film-Noir",
+    "Horror",
+    "IMAX",
+    "Musical",
+    "Mystery",
+    "Romance",
+    "Sci-Fi",
+    "Thriller",
+    "War",
+    "Western"
+  ],
+  "improvement_over_baseline": {
+    "vs_global_0.5": {
+      "f1_macro": -2.02,
+      "recall_macro": 13.04,
+      "precision_macro": -1.34
+    }
+  },
+  "f1_micro": 0.3916,
+  "f1_samples": 0.3894,
+  "threshold_method": "per_label_f1_grid_search",
+  "threshold_values": {
+    "Action": 0.6,
+    "Adventure": 0.6,
+    "Animation": 0.7,
+    "Children": 0.75,
+    "Comedy": 0.5,
+    "Crime": 0.55,
+    "Documentary": 0.6,
+    "Drama": 0.5,
+    "Fantasy": 0.65,
+    "Film-Noir": 0.9,
+    "Horror": 0.65,
+    "IMAX": 0.9,
+    "Musical": 0.75,
+    "Mystery": 0.6,
+    "Romance": 0.6,
+    "Sci-Fi": 0.6,
+    "Thriller": 0.55,
+    "War": 0.6,
+    "Western": 0.85
+  }
+}

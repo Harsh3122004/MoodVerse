@@ -84,8 +84,13 @@ cd MoodVerse
 pip install -r requirements.txt
 ```
 
-### 3. Download datasets & models from Drive
-Download from the link above and place files as shown in the structure above.
+### 3. Automatically Download Datasets & Models
+Because the raw datasets and model binaries exceed GitHub's 100MB file limit, they are securely hosted on Google Drive. 
+You can instantly download and route all ~250MB of data into your project by running the specialized setup script:
+```bash
+python setup_datasets.py
+```
+*(If you prefer to download them manually, refer to the [Google Drive Folder Link](https://drive.google.com/drive/folders/1861lOpGNh6cAe-A-5JUda5AJExZp7AsM?usp=drive_link) and copy the structure above).*
 
 ### 4. (Optional) Re-train models from scratch
 If you want to regenerate the models yourself, run the notebooks in order:
