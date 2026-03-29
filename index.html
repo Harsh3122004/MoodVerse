@@ -1238,6 +1238,53 @@ function Landing({onEnter}){
   );
 }
 
+// ── System Warning Banner ───────────────────────────────────────────────────
+function SystemWarningBanner(){
+  const [missing, setMissing] = useState([]);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/system_status')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ready) setMissing(data.missing || []);
+      })
+      .catch(console.error);
+  }, []);
+
+  if (dismissed || missing.length === 0) return null;
+
+  return (
+    <div style={{
+      background: 'linear-gradient(90deg, #d35400, #e74c3c)',
+      color: '#fff', padding: '12px 24px', display: 'flex', alignItems: 'center', 
+      justifyContent: 'space-between', zIndex: 9999, position: 'sticky', top: 0,
+      borderBottom: '1px solid rgba(255,255,255,0.2)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', fontWeight: 500 }}>
+        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+        <div>
+          <strong>Model files are missing:</strong> <span style={{background:'rgba(0,0,0,0.3)',padding:'2px 6px',borderRadius:'4px',fontFamily:'monospace',fontSize:'0.82rem'}}>{missing.join(', ')}</span> — 
+          The app won't work properly until you copy them from the Google Drive link into the correct folders.
+        </div>
+      </div>
+      <button 
+        onClick={() => setDismissed(true)} 
+        style={{
+          background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', 
+          padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+          transition: 'background 0.2s',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }}
+        onMouseOver={e=>e.target.style.background='rgba(255,255,255,0.3)'}
+        onMouseOut={e=>e.target.style.background='rgba(255,255,255,0.2)'}
+      >
+        ✕ Dismiss
+      </button>
+    </div>
+  );
+}
+
 // ── Main App ───────────────────────────────────────────────────────────────
 function App(){
   const [showLanding,setShowLanding]=useState(true);
@@ -1273,6 +1320,7 @@ function App(){
 
   return(
     <div>
+      <SystemWarningBanner />
       <header className="header">
         <div>
           <div className="logo"><span className="m">Mood</span><span className="v">Verse</span></div>

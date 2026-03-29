@@ -19,6 +19,25 @@ from recommend import (get_recommendations, get_music_recommendations,
 app = Flask(__name__, static_folder='.')
 CORS(app)
 
+# ── Missing File Validator (For GitHub/Drive Distribution) ───────────────────
+REQUIRED_RESOURCE_FILES = [
+    'models/svd_artifacts.pkl',
+    'datasets/raw/anime.csv',
+    'datasets/raw/spotify_tracks.csv'
+]
+
+def get_missing_files():
+    return [os.path.basename(f) for f in REQUIRED_RESOURCE_FILES if not os.path.exists(f)]
+
+@app.route('/api/system_status', methods=['GET'])
+def system_status():
+    missing = get_missing_files()
+    return jsonify({
+        'ready': len(missing) == 0,
+        'missing': missing
+    })
+
+
 # ── Analytics cache (pre-loaded at startup) ──────────────────────────────────
 _analytics_cache = None
 _analytics_lock  = threading.Lock()
@@ -519,17 +538,26 @@ def _save_rec_history(request, data, movies):
 if __name__=='__main__':
     init_db()
 
-    # Pre-warm sentiment model in background (eliminates first-request timeout)
-    print('Pre-loading sentiment model in background...')
-    threading.Thread(target=load_sentiment_model, daemon=True).start()
+    missing = get_missing_files()
+    if missing:
+        print(f"\n❌ BACKEND WARNING: Missing required files: {', '.join(missing)}")
+        print("   -> Bypassing background model loading to prevent crashes. Please check the React UI for instructions.\n")
+    else:
+        # Pre-warm sentiment model in background (eliminates first-request timeout)
+        print('Pre-loading sentiment model in background...')
+        threading.Thread(target=load_sentiment_model, daemon=True).start()
 
-    # Pre-warm genre model in background (eliminates 3-5s first-request delay)
-    print('Pre-loading genre model in background...')
-    threading.Thread(target=load_genre_model, daemon=True).start()
+        # Pre-warm genre model in background (eliminates 3-5s first-request delay)
+        print('Pre-loading genre model in background...')
+        threading.Thread(target=load_genre_model, daemon=True).start()
 
-    # Pre-aggregate analytics data in background (eliminates dashboard timeout)
-    print('Pre-loading analytics cache in background...')
-    threading.Thread(target=_build_analytics_cache, daemon=True).start()
+        # Pre-aggregate analytics data in background (eliminates dashboard timeout)
+        print('Pre-loading analytics cache in background...')
+        threading.Thread(target=_build_analytics_cache, daemon=True).start()
 
     print('\nMoodVerse backend running at http://localhost:5000\n')
+    
+    import webbrowser
+    threading.Timer(1.5, lambda: webbrowser.open('http://localhost:5000')).start()
+    
     app.run(debug=True, port=5000, use_reloader=False)
