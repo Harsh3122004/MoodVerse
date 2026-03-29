@@ -96,6 +96,14 @@ def _build_analytics_cache():
             for _, r in top_movies.iterrows()
         ]
 
+        genre_ratings = (
+            ratings.merge(movies_exp[['movieId','genre']], on='movieId', how='left')
+            .groupby('genre')['rating'].mean()
+            .sort_values(ascending=False).head(15)
+        )
+        genre_rating_data = [{'genre': g, 'avg_rating': round(float(v), 2)}
+                              for g, v in genre_ratings.items()]
+
         summary = {
             'total_ratings': int(len(ratings)),
             'total_movies':  int(movies['movieId'].nunique()),
@@ -109,7 +117,8 @@ def _build_analytics_cache():
                 'summary':      summary,
                 'genre_counts': genre_data,
                 'rating_dist':  rating_data,
-                'top_movies':   top_data
+                'top_movies':   top_data,
+                'genre_ratings': genre_rating_data
             }
         print('✅ Analytics cache built successfully (Fallback).')
     except Exception as e:
