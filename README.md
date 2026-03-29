@@ -38,7 +38,7 @@ MoodVerse/
 Because the raw datasets and large model files exceed GitHub's 100MB limit, they are hosted on Google Drive.
 
 ### 📥 Download Here:
-> **[MoodVerse Datasets — Google Drive](https://drive.google.com/drive/folders/1861lOpGNh6cAe-A-5JUda5AJExZp7AsM?usp=drive_link)**
+> **[MoodVerse Datasets — Google Drive (ZIP)](https://drive.google.com/file/d/1i4liNGcDJs0fLjNXL6SnT2-9k20DrXQs/view?usp=sharing)**
 
 After downloading, place the contents so your local structure looks like this:
 
@@ -90,7 +90,7 @@ You can instantly download and route all ~250MB of data into your project by run
 ```bash
 python setup_datasets.py
 ```
-*(If you prefer to download them manually, refer to the [Google Drive Folder Link](https://drive.google.com/drive/folders/1861lOpGNh6cAe-A-5JUda5AJExZp7AsM?usp=drive_link) and copy the structure above).*
+*(If you prefer to download them manually, refer to the [Google Drive ZIP Link](https://drive.google.com/file/d/1i4liNGcDJs0fLjNXL6SnT2-9k20DrXQs/view?usp=sharing) and copy the structure above).*
 
 ### 4. (Optional) Re-train models from scratch
 If you want to regenerate the models yourself, run the notebooks in order:

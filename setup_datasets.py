@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import zipfile
 
 try:
     import gdown
@@ -10,29 +11,42 @@ except ImportError:
     import gdown
 
 def setup_datasets():
-    folder_id = '1861lOpGNh6cAe-A-5JUda5AJExZp7AsM'
-    url = f'https://drive.google.com/drive/folders/{folder_id}'
-    temp_dir = 'temp_dataset_downloads'
+    # New File ID for the consolidated moodverse_data.zip
+    file_id = '1i4liNGcDJs0fLjNXL6SnT2-9k20DrXQs'
+    url = f'https://drive.google.com/uc?id={file_id}'
+    zip_path = 'moodverse_data.zip'
+    temp_dir = 'temp_dataset_extraction'
     
     print("\n" + "="*55)
     print(" 🚀 MoodVerse Automated Dataset & Model Downloader")
     print("="*55)
-    print("\nConnecting to your public Google Drive URL...")
+    print("\nConnecting to your public Google Drive link...")
     print("This will download the required resources (Total ~250MB).")
     print("Depending on your internet speed, this may take 1-5 minutes.")
     print("Please do not close this window.\n")
 
     try:
-        # Proceed with downloading
-        # The remaining_ok=True flag helps resume downloads if it drops
-        gdown.download_folder(url, output=temp_dir, quiet=False, use_cookies=False, remaining_ok=True)
+        # Download the ZIP file
+        gdown.download(url, output=zip_path, quiet=False, use_cookies=False)
     except Exception as e:
         print(f"\n❌ Download Error: {e}")
         print("Please check your internet connection or try manually downloading from the README link.")
         return
 
-    print("\n✅ Download complete! Moving files to their correct directories...\n")
+    print("\n✅ Download complete! Extracting archive...\n")
     
+    try:
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+            
+        print("✅ Extraction complete! Moving files to their correct directories...\n")
+    except Exception as e:
+        print(f"❌ Extraction Error: {e}")
+        return
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     models_dir = os.path.join(base_dir, 'models')
     raw_dir = os.path.join(base_dir, 'datasets', 'raw')
@@ -43,13 +57,15 @@ def setup_datasets():
     os.makedirs(raw_dir, exist_ok=True)
     os.makedirs(processed_dir, exist_ok=True)
 
-    # Some versions of gdown nest the download inside a folder bearing the Drive folder's name
+    # Some ZIP compressions might nest inside a folder (or not)
+    # We check if the expected items are directly in temp_dir or one level deep
     source_dir = temp_dir
-    subdirs = [f for f in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, f))]
-    if len(subdirs) == 1 and 'raw' not in subdirs and 'processed' not in subdirs:
-        source_dir = os.path.join(temp_dir, subdirs[0])
-        
-    print(f"Extracting from archive routing...")
+    items = os.listdir(temp_dir)
+    if len(items) == 1 and os.path.isdir(os.path.join(temp_dir, items[0])):
+        # ZIP was created by selecting the "moodverse_datasets" folder itself
+        source_dir = os.path.join(temp_dir, items[0])
+    
+    print(f"Routing files from {source_dir}...")
 
     # 1. Move svd_artifacts.pkl to models/
     svd_src = os.path.join(source_dir, 'svd_artifacts.pkl')
@@ -83,14 +99,16 @@ def setup_datasets():
             shutil.move(s, d)
         print(" -> Placed clean dataset files in datasets/processed/")
 
-    print("\nCleaning up temporary extraction files...")
+    print("\nCleaning up temporary files...")
     try:
         shutil.rmtree(temp_dir)
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
     except Exception as e:
-        print(f"Warning: Could not delete temp directory {temp_dir}: {e}")
+        print(f"Warning: Cleanup Error: {e}")
 
-    print("\n✅ All datasets and models are successfully configured!")
-    print("You can now run 'python app.py' to launch the MoodVerse website.\n")
+    print("\n✅ Your MoodVerse environment is now fully configured!")
+    print("You can now run 'python app.py' to launch the website.\n")
 
 if __name__ == '__main__':
     setup_datasets()
