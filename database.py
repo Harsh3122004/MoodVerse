@@ -82,6 +82,26 @@ def init_db():
         )
     ''')
 
+    # ── PERSISTENT CACHE FOR POSTERS ──────────────────────────────────────
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS poster_cache (
+            key         TEXT PRIMARY KEY,
+            poster_url  TEXT,
+            plot        TEXT,
+            rating      TEXT,
+            year        TEXT,
+            source      TEXT,
+            success     INTEGER DEFAULT 1,
+            cached_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # ── PERFORMANCE INDEXES ───────────────────────────────────────────────
+    c.execute('CREATE INDEX IF NOT EXISTS idx_watchlist_user ON watchlist(user_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_history_user ON review_history(user_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_rec_user ON rec_history(user_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_session_user ON sessions(user_id)')
+
     conn.commit()
     conn.close()
     print('Database initialized at', DB_PATH)

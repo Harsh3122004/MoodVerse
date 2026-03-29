@@ -137,6 +137,17 @@ def get_recommendations(genres, energy=50, darkness=20, romance=30,
              'poster':None,'overview':''}
             for _,r in selected.sort_values('score',ascending=False).iterrows()]
 
+def warm_up_all():
+    """Pre-load all datasets into memory for instant startup."""
+    try:
+        _load_movies()
+        _load_music()
+        _load_anime()
+        return True
+    except Exception as e:
+        print(f"Warm-up failed: {e}")
+        return False
+
 
 # ── MUSIC ─────────────────────────────────────────────────────────────────
 def _load_music():
@@ -170,19 +181,17 @@ def get_music_recommendations(mood, genre_filter=None, n=10):
         if not gf.empty: filtered=gf
     if filtered.empty: filtered=df.copy()
 
-    # ── FIX: compute feat_score safely without Series/list ambiguity ──
-    feat_cols=[f for f in features if f in filtered.columns]
+    # ── OPTIMIZED: Vectorized Scoring (O(1) Python time, O(N) C time) ──
+    feat_cols = [f for f in features if f in filtered.columns]
     if feat_cols:
-        feat_means={f:(features[f][0]+features[f][1])/2 for f in feat_cols}
-        scores=[]
-        for _, row in filtered[feat_cols].iterrows():
-            s=sum(1-abs(float(row[f])-feat_means[f]) for f in feat_cols)/len(feat_cols)
-            scores.append(s)
-        filtered=filtered.copy()
-        filtered['feat_score']=scores
+        # Vectorized Euclidean-like distance from target means
+        feat_means = np.array([(features[f][0]+features[f][1])/2 for f in feat_cols])
+        data_matrix = filtered[feat_cols].values.astype(float)
+        # Calculate similarity (1 - mean absolute difference) across all rows at once
+        diffs = np.abs(data_matrix - feat_means)
+        filtered['feat_score'] = 1.0 - np.mean(diffs, axis=1)
     else:
-        filtered=filtered.copy()
-        filtered['feat_score']=0.5
+        filtered['feat_score'] = 0.5
 
     pop_norm=(filtered['popularity']/100.0) if 'popularity' in filtered.columns else 0.5
     filtered['pop_norm']=pop_norm
@@ -235,11 +244,15 @@ def get_anime_recommendations(mood, genre_filter=None, n=10):
     r_max=filtered['rating'].max() or 1; m_max=filtered['members'].max() or 1
     filtered['rating_norm']=filtered['rating']/r_max
     filtered['pop_norm']=np.log1p(filtered['members'])/np.log1p(m_max)
-    filtered['genre_match']=filtered['genres'].fillna('').apply(
-        lambda g:sum(1 for tg in target_genres if tg.lower() in g.lower()))
-    gm_max=filtered['genre_match'].max() or 1
-    filtered['genre_score']=filtered['genre_match']/gm_max
-    filtered['score']=0.4*filtered['rating_norm']+0.3*filtered['pop_norm']+0.3*filtered['genre_score']
+    # ── OPTIMIZED: Vectorized Genre Match Scoring ─────────────────────
+    genre_data = filtered['genres'].fillna('').str.lower()
+    match_counts = np.zeros(len(filtered))
+    for tg in target_genres:
+        match_counts += genre_data.str.contains(tg.lower()).astype(int)
+    
+    gm_max = match_counts.max() or 1
+    filtered['genre_score'] = match_counts / gm_max
+    filtered['score'] = 0.4*filtered['rating_norm'] + 0.3*filtered['pop_norm'] + 0.3*filtered['genre_score']
     pool=filtered.nlargest(min(n*4,len(filtered)),'score')
     if len(pool)>n:
         # ── FIX: normalize probs safely to avoid NaN / zero-sum error ──

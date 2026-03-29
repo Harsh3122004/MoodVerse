@@ -41,8 +41,9 @@ def system_status():
 # ── Analytics & Poster caches (pre-loaded or dynamic) ────────────────────────
 _analytics_cache = None
 _analytics_lock  = threading.Lock()
-_poster_cache    = {}  # { "title+year": { "success": bool, "data": dict } }
-_anime_cache     = {}  # { "title": { "success": bool, "data": dict } }
+# RAM caches (fast) + SQLite (persistent)
+_poster_cache    = {}  
+_anime_cache     = {}  
 _cache_lock      = threading.Lock()
 
 def _build_analytics_cache():
@@ -438,41 +439,66 @@ def user_analytics(user_id):
 # ── OMDB Poster Proxy (avoids CORS / key issues client-side) ─────────────────
 @app.route('/api/poster', methods=['GET'])
 def poster_proxy():
-    """Fetch movie poster and plot from OMDB API server-side with caching."""
+    """Fetch movie poster and plot from OMDB API server-side with persistent SQLite caching."""
     title = request.args.get('title', '').strip()
     year  = request.args.get('year', '').strip()
     if not title:
         return jsonify({'success': False, 'error': 'No title provided'}), 400
     
     cache_key = f"{title.lower()}_{year}"
+    
+    # 1. Check RAM cache first
     with _cache_lock:
         if cache_key in _poster_cache:
             return jsonify(_poster_cache[cache_key])
 
+    # 2. Check SQLite persistent cache
+    try:
+        conn = get_conn()
+        res = conn.execute('SELECT * FROM poster_cache WHERE key = ?', (cache_key,)).fetchone()
+        conn.close()
+        if res:
+            data = {
+                'success': bool(res['success']),
+                'poster': res['poster_url'],
+                'plot': res['plot'],
+                'imdbRating': res['rating'],
+                'year': res['year']
+            }
+            with _cache_lock:
+                _poster_cache[cache_key] = data
+            return jsonify(data)
+    except Exception:
+        pass
+
+    # 3. Fetch from APIs
     try:
         import requests as _req
         params = {'t': title, 'apikey': 'trilogy', 'plot': 'short'}
         if year:
             params['y'] = year
             
-        # Try with multiple free/demo keys
         for key in ['trilogy', '8a02a466', 'aa9290ec', 'f200ae9e']:
             params['apikey'] = key
             try:
-                # Reduced timeout from 4s to 1.2s for faster key cycling/fallback
                 r = _req.get('https://www.omdbapi.com/', params=params, timeout=1.2)
                 if r.status_code == 200:
                     data = r.json()
                     if data.get('Response') == 'True':
                         res = {
-                            'success': True,
-                            'poster':  data.get('Poster', 'N/A'),
-                            'plot':    data.get('Plot', ''),
-                            'imdbRating': data.get('imdbRating', ''),
-                            'year':    data.get('Year', '')
+                            'success': True, 'poster': data.get('Poster', 'N/A'),
+                            'plot': data.get('Plot', ''), 'imdbRating': data.get('imdbRating', ''),
+                            'year': data.get('Year', '')
                         }
+                        # Save to RAM and Persistent DB
                         with _cache_lock:
                             _poster_cache[cache_key] = res
+                        try:
+                            conn = get_conn()
+                            conn.execute('INSERT OR REPLACE INTO poster_cache (key, poster_url, plot, rating, year, success) VALUES (?,?,?,?,?,?)',
+                                         (cache_key, res['poster'], res['plot'], res['imdbRating'], res['year'], 1))
+                            conn.commit(); conn.close()
+                        except: pass
                         return jsonify(res)
             except Exception:
                 continue
@@ -488,37 +514,49 @@ def poster_proxy():
 # ── Anime Poster Proxy (server-side Jikan/Kitsu fetch → avoids CORS) ─────────
 @app.route('/api/anime-poster', methods=['GET'])
 def anime_poster_proxy():
-    """
-    Fetch anime poster from Jikan v4 (MyAnimeList) server-side with caching.
-    Falls back to Kitsu.io API if Jikan fails or returns no image.
-    """
+    """Fetch anime poster from Jikan v4 (MyAnimeList) server-side with persistent cache."""
     title = request.args.get('title', '').strip()
     if not title:
         return jsonify({'success': False, 'poster': None}), 400
         
+    cache_key = f"anime_{title.lower()}"
     with _cache_lock:
-        if title.lower() in _anime_cache:
-            return jsonify(_anime_cache[title.lower()])
+        if cache_key in _anime_cache:
+            return jsonify(_anime_cache[cache_key])
+
+    # Persistent check
+    try:
+        conn = get_conn()
+        res = conn.execute('SELECT * FROM poster_cache WHERE key = ?', (cache_key,)).fetchone()
+        conn.close()
+        if res:
+            data = {'success': bool(res['success']), 'poster': res['poster_url'], 'source': res['source']}
+            with _cache_lock:
+                _anime_cache[cache_key] = data
+            return jsonify(data)
+    except: pass
 
     try:
         import requests as _req
-        # ── Try Jikan v4 (MyAnimeList) ──────────────────────────────────
+        # ── Try Jikan v4 ────────────────────────────────────────────────
         try:
             r = _req.get('https://api.jikan.moe/v4/anime', params={'q': title, 'limit': 1}, timeout=1.5)
             if r.status_code == 200:
                 data = r.json().get('data', [])
                 if data:
-                    img = (data[0].get('images', {}).get('jpg', {}).get('large_image_url')
-                           or data[0].get('images', {}).get('jpg', {}).get('image_url'))
+                    img = (data[0].get('images', {}).get('jpg', {}).get('large_image_url') or data[0].get('images', {}).get('jpg', {}).get('image_url'))
                     if img:
                         res = {'success': True, 'poster': img, 'source': 'jikan'}
-                        with _cache_lock:
-                            _anime_cache[title.lower()] = res
+                        with _cache_lock: _anime_cache[cache_key] = res
+                        try:
+                            conn = get_conn()
+                            conn.execute('INSERT OR REPLACE INTO poster_cache (key, poster_url, source, success) VALUES (?,?,?,?)', (cache_key, img, 'jikan', 1))
+                            conn.commit(); conn.close()
+                        except: pass
                         return jsonify(res)
-        except Exception:
-            pass
+        except: pass
 
-        # ── Fallback: Kitsu.io API ───────────────────────────────────────
+        # ── Fallback: Kitsu.io ──────────────────────────────────────────
         try:
             r2 = _req.get('https://kitsu.io/api/edge/anime', params={'filter[text]': title, 'page[limit]': 1}, 
                           headers={'Accept': 'application/vnd.api+json'}, timeout=1.5)
@@ -529,15 +567,17 @@ def anime_poster_proxy():
                     img2 = (attrs.get('posterImage', {}).get('large') or attrs.get('posterImage', {}).get('medium'))
                     if img2:
                         res = {'success': True, 'poster': img2, 'source': 'kitsu'}
-                        with _cache_lock:
-                            _anime_cache[title.lower()] = res
+                        with _cache_lock: _anime_cache[cache_key] = res
+                        try:
+                            conn = get_conn()
+                            conn.execute('INSERT OR REPLACE INTO poster_cache (key, poster_url, source, success) VALUES (?,?,?,?)', (cache_key, img2, 'kitsu', 1))
+                            conn.commit(); conn.close()
+                        except: pass
                         return jsonify(res)
-        except Exception:
-            pass
+        except: pass
 
         fail_res = {'success': False, 'poster': None}
-        with _cache_lock:
-            _anime_cache[title.lower()] = fail_res
+        with _cache_lock: _anime_cache[cache_key] = fail_res
         return jsonify(fail_res)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -564,6 +604,10 @@ if __name__=='__main__':
         print(f"\n❌ BACKEND WARNING: Missing required files: {', '.join(missing)}")
         print("   -> Bypassing background model loading to prevent crashes. Please check the React UI for instructions.\n")
     else:
+        # ── WARM UP ALL ───────────────────────────────────────────────────
+        from recommend import warm_up_all
+        threading.Thread(target=warm_up_all, daemon=True).start()
+        
         # Pre-warm sentiment model in background (eliminates first-request timeout)
         print('Pre-loading sentiment model in background...')
         threading.Thread(target=load_sentiment_model, daemon=True).start()
