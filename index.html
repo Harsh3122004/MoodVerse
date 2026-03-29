@@ -153,7 +153,7 @@ canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
 .card-wl-btn:hover,.card-wl-btn.saved{color:var(--gold);border-color:var(--border2);}
 .badge{position:absolute;top:8px;left:8px;background:rgba(232,184,75,.2);backdrop-filter:blur(6px);border:1px solid rgba(232,184,75,.4);border-radius:5px;padding:2px 6px;font-size:.66rem;font-weight:600;color:var(--gold);}
 .card-body{padding:10px 12px 12px;}
-.card-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card-meta2{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
 .rating{font-size:.76rem;font-weight:600;color:var(--gold);}
 .gpills{display:flex;gap:3px;flex-wrap:wrap;}
@@ -161,7 +161,7 @@ canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
 .card-overlay{position:absolute;inset:0;background:rgba(4,4,14,.95);padding:13px;opacity:0;transition:opacity .2s;display:flex;flex-direction:column;justify-content:center;z-index:1;}
 .movie-card:hover .card-overlay{opacity:1;}
 .ov-title{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:var(--gold);margin-bottom:6px;}
-.ov-text{font-size:.74rem;color:var(--txt2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+.ov-text{font-size:.74rem;color:var(--txt2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:6;line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
 .ov-tags{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;}
 .ov-tag{font-size:.67rem;padding:2px 6px;background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.25);border-radius:9px;color:var(--gold2);}
 
@@ -188,7 +188,7 @@ canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
 .anime-grad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(4,4,14,1),transparent);}
 .anime-type-badge{position:absolute;top:8px;left:8px;background:rgba(168,85,247,.3);border:1px solid rgba(168,85,247,.5);border-radius:5px;padding:2px 7px;font-size:.67rem;color:#d8b4fe;font-weight:600;}
 .anime-body{padding:10px 12px 12px;}
-.anime-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.anime-title{font-size:.83rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .anime-meta{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
 .anime-rating{font-size:.76rem;font-weight:600;color:var(--purple);}
 .anime-overlay{position:absolute;inset:0;background:rgba(4,4,14,.95);padding:13px;opacity:0;transition:opacity .2s;display:flex;flex-direction:column;justify-content:center;z-index:1;}
@@ -277,12 +277,20 @@ canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
 .similar-model-badge{font-size:.7rem;color:var(--cyan);background:rgba(0,221,224,.07);border:1px solid rgba(0,221,224,.22);border-radius:6px;padding:3px 8px;}
 .sim-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all .18s;position:relative;}
 .sim-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5);}
-.sim-card-title{font-size:.84rem;font-weight:600;color:var(--txt);margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sim-card-title{font-size:.84rem;font-weight:600;color:var(--txt);margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sim-card-meta{font-size:.72rem;color:var(--txt2);margin-bottom:6px;}
 .sim-score{position:absolute;top:8px;right:8px;font-size:.67rem;font-weight:600;color:var(--gold);background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);border-radius:5px;padding:2px 6px;}
 .sim-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
 @media(max-width:1000px){.sim-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:640px){.sim-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ── Autocomplete ── */
+.ac-drop{position:absolute;top:100%;left:0;right:0;max-height:240px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-top:6px;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.8);backdrop-filter:blur(8px);scrollbar-width:thin;}
+.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03);transition:background .15s;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover{background:var(--glass2);}
+.ac-ttl{font-size:.86rem;font-weight:600;color:var(--txt);}
+.ac-sub{font-size:.7rem;color:var(--txt2);margin-top:2px;}
 </style>
 </head>
 <body>
@@ -297,6 +305,57 @@ canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
 <script type="text/babel">
 const {useState, useEffect, useRef, useCallback} = React;
 const API = 'http://localhost:5000/api';
+
+// ── Autocomplete Component ────────────────────────────────────────────────
+function AutocompleteInput({value, onChange, onEnter, placeholder, category, className}) {
+  const [sugs, setSugs] = useState([]);
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef(null);
+
+  const fetchSugs = async (q) => {
+    if(!q.trim()) { setSugs([]); return; }
+    setLoading(true);
+    try {
+      const d = await apiFetch(`/autocomplete?q=${encodeURIComponent(q.trim())}&c=${category}`);
+      if(d.success) setSugs(d.results);
+    } catch(e) { }
+    setLoading(false);
+  };
+
+  const handleChange = (e) => {
+    const v = e.target.value;
+    onChange(v);
+    setShow(true);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => fetchSugs(v), 250);
+  };
+
+  const handleSelect = (t) => {
+    onChange(t);
+    setShow(false);
+    setTimeout(() => onEnter&&onEnter(), 50);
+  };
+
+  return (
+    <div style={{position:'relative', flex:1}}>
+      <input className={className} value={value} onChange={handleChange} style={{width:'100%'}}
+        onFocus={()=>value&&setShow(true)} onBlur={()=>setTimeout(()=>setShow(false),200)}
+        onKeyDown={e=>{if(e.key==='Enter'){setShow(false);if(onEnter)onEnter();}}} placeholder={placeholder}/>
+      {show && (sugs.length>0 || loading) && (
+        <div className="ac-drop">
+          {loading ? <div className="ac-item" style={{color:'var(--txt2)',fontSize:'.8rem'}}>Searching...</div> :
+           sugs.map((s,i) => (
+             <div key={i} className="ac-item" onMouseDown={()=>handleSelect(s.title)}>
+               <div className="ac-ttl">{s.title}</div>
+               {s.sub && <div className="ac-sub">{category==='movies'&&'🎬 '}{category==='music'&&'🎵 '}{category==='anime'&&'🌸 '}{s.sub}</div>}
+             </div>
+           ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Magnetic Particles ────────────────────────────────────────────────────
 function initParticles() {
@@ -874,7 +933,7 @@ function AIToolsPage({token}){
             {(movieTitle||genreResult)&&<button className="btn" style={{padding:'3px 9px',fontSize:'.73rem'}} onClick={()=>{setMovieTitle('');setMovieYear('');setGenreResult(null);}}>Clear</button>}
           </div>
           <div className="tool-sub">TF-IDF + sklearn classifier — enter any movie title.</div>
-          <input className="tool-input" value={movieTitle} onChange={e=>setMovieTitle(e.target.value)} placeholder="e.g. Star Wars" onKeyDown={e=>e.key==='Enter'&&predictGenres()}/>
+          <AutocompleteInput className="tool-input" value={movieTitle} onChange={setMovieTitle} placeholder="e.g. Star Wars" onEnter={predictGenres} category="predictor"/>
           <input className="tool-input" type="text" inputMode="numeric" value={movieYear} onChange={e=>setMovieYear(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="Year e.g. 1999 (optional)"/>
           <button className="btn primary" onClick={predictGenres} disabled={genreLoading||!movieTitle.trim()}>{genreLoading?'Predicting…':'Predict Genres'}</button>
           <div style={{fontSize:'.73rem',color:'var(--txt2)',marginTop:'5px'}}>Best with: Star Wars, Titanic, The Matrix, Inception…</div>
@@ -1087,12 +1146,12 @@ function RecommendPage({token,category,watchlist,setWatchlist,movies,setMovies,h
         <div className="similar-search-title">🔍 Find Similar {cat.label}</div>
         <div className="similar-search-sub">Enter a {category==='music'?'track name':category==='anime'?'anime title':'movie title'} to discover similar {cat.label.toLowerCase()} using AI similarity search.</div>
         <div className="similar-search-row">
-          <input
-            id={`similar-search-${category}`}
+          <AutocompleteInput
             className="similar-input"
             value={simQuery}
-            onChange={e=>setSimQuery(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&searchSimilar()}
+            onChange={setSimQuery}
+            onEnter={searchSimilar}
+            category={category}
             placeholder={category==='movies'?'e.g. Inception, Toy Story, The Matrix…':category==='music'?'e.g. Shape of You, Blinding Lights…':'e.g. Attack on Titan, Naruto…'}
           />
           <button

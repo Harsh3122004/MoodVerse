@@ -1162,3 +1162,49 @@ def get_similar_anime(title: str, n: int = 10) -> dict:
 
     return {'found': True, 'query_title': query_title, 'results': results,
             'model_used': 'TF-IDF Genre Cosine Similarity (sklearn)'}
+
+# ════════════════════════════════════════════════════════════════════════════
+# ── AUTOCOMPLETE SEARCH ─────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
+
+def get_autocomplete_suggestions(query: str, category: str, n: int = 8) -> list:
+    """Fast prefix and substring matching on pre-loaded pandas DataFrames."""
+    query = query.lower().strip()
+    if not query: return []
+    
+    results = []
+    
+    if category in ['movies', 'predictor']:
+        _load_movies()
+        df = _movie_cache.get('movies')
+        if df is not None:
+            starts = df[df['title'].str.lower().str.startswith(query, na=False)]
+            contains = df[df['title'].str.lower().str.contains(query, na=False, regex=False)]
+            combined = pd.concat([starts, contains]).drop_duplicates(subset=['movieId'])
+            import re
+            for _, r in combined.head(n).iterrows():
+                t = str(r['title'])
+                t = re.sub(r'\s*\(\d{4}\)\s*$', '', t).strip()
+                results.append({'title': t, 'sub': str(r.get('release_year', ''))})
+                
+    elif category == 'music':
+        _load_music()
+        df = _music_cache.get('df')
+        if df is not None:
+            starts = df[df['track_name'].str.lower().str.startswith(query, na=False)]
+            contains = df[df['track_name'].str.lower().str.contains(query, na=False, regex=False)]
+            combined = pd.concat([starts, contains]).drop_duplicates(subset=['track_name'])
+            for _, r in combined.head(n).iterrows():
+                results.append({'title': str(r['track_name']), 'sub': str(r.get('artists', ''))})
+                
+    elif category == 'anime':
+        _load_anime()
+        df = _anime_cache.get('df')
+        if df is not None:
+            starts = df[df['title'].str.lower().str.startswith(query, na=False)]
+            contains = df[df['title'].str.lower().str.contains(query, na=False, regex=False)]
+            combined = pd.concat([starts, contains]).drop_duplicates(subset=['title'])
+            for _, r in combined.head(n).iterrows():
+                results.append({'title': str(r['title']), 'sub': str(r.get('media_type', 'TV'))})
+                
+    return results

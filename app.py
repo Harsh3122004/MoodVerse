@@ -14,7 +14,8 @@ from recommend import (get_recommendations, get_music_recommendations,
                        predict_sentiment, predict_genres,
                        detect_mood_from_text, PROCESSED_DIR,
                        load_sentiment_model, load_genre_model,
-                       get_similar_movies, get_similar_music, get_similar_anime)
+                       get_similar_movies, get_similar_music, get_similar_anime,
+                       get_autocomplete_suggestions)
 
 app = Flask(__name__, static_folder='.')
 CORS(app)
@@ -325,6 +326,21 @@ def similar_anime():
         if not result['found']:
             return jsonify({'success': False, 'error': result.get('error', 'Not found.')}), 404
         return jsonify({'success': True, **result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── Autocomplete Search ───────────────────────────────────────────────────
+@app.route('/api/autocomplete', methods=['GET'])
+def autocomplete():
+    """Fast prefix matching for search inputs."""
+    q = request.args.get('q', '').strip()
+    c = request.args.get('c', 'movies').strip()
+    if not q:
+        return jsonify({'success': True, 'results': []})
+    try:
+        results = get_autocomplete_suggestions(q, c, n=8)
+        return jsonify({'success': True, 'results': results})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
