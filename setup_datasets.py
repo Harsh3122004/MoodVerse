@@ -107,6 +107,70 @@ def setup_datasets():
     except Exception as e:
         print(f"Warning: Cleanup Error: {e}")
 
+    # 4. OPTIMIZATION: Pre-calculate Analytics Dashboard
+    print("\n⚡ Optimization: Pre-calculating AI analytics (Dashboard statistics)...")
+    try:
+        import pandas as pd
+        import json
+        import re
+        
+        # Paths
+        ratings_path = os.path.join(processed_dir, 'ratings_clean.csv')
+        movies_path = os.path.join(processed_dir, 'movies_clean.csv')
+        exploded_path = os.path.join(processed_dir, 'movies_exploded.csv')
+        cache_path = os.path.join(processed_dir, 'analytics_cache.json')
+        
+        if os.path.exists(ratings_path) and os.path.exists(movies_path) and os.path.exists(exploded_path):
+            print(" -> Processing 1 million ratings (this takes ~10s)...")
+            ratings = pd.read_csv(ratings_path)
+            movies = pd.read_csv(movies_path)
+            movies_exp = pd.read_csv(exploded_path)
+            
+            # Aggregate stats
+            genre_counts = movies_exp['genre'].value_counts().head(15)
+            genre_data = [{'genre': g, 'count': int(c)} for g, c in genre_counts.items()]
+            
+            rating_dist = ratings['rating'].value_counts().sort_index()
+            rating_data = [{'rating': float(r), 'count': int(c)} for r, c in rating_dist.items()]
+            
+            top_movies = (
+                ratings.groupby('movieId')
+                .agg(avg_rating=('rating','mean'), count=('rating','count'))
+                .reset_index()
+                .merge(movies[['movieId','title']], on='movieId')
+                .query('count >= 150')
+                .sort_values('avg_rating', ascending=False)
+                .head(10)
+            )
+            top_data = [
+                {'title': re.sub(r'\s*\(\d{4}\)\s*$', '', r['title']).strip(),
+                 'avg_rating': round(r['avg_rating'], 2), 'count': int(r['count'])}
+                for _, r in top_movies.iterrows()
+            ]
+            
+            summary = {
+                'total_ratings': int(len(ratings)),
+                'total_movies': int(movies['movieId'].nunique()),
+                'total_users': int(ratings['userId'].nunique()),
+                'mean_rating': round(float(ratings['rating'].mean()), 3)
+            }
+            
+            cache = {
+                'success': True,
+                'summary': summary,
+                'genre_counts': genre_data,
+                'rating_dist': rating_data,
+                'top_movies': top_data
+            }
+            
+            with open(cache_path, 'w') as f:
+                json.dump(cache, f)
+            print(" -> ✅ Analytics cache built successfully!")
+    except ImportError:
+        print(" -> Skip: 'pandas' not installed. Analytics will build on first server run.")
+    except Exception as e:
+        print(f" -> Skip: Analytics aggregation error: {e}")
+
     print("\n✅ Your MoodVerse environment is now fully configured!")
     print("You can now run 'python app.py' to launch the website.\n")
 

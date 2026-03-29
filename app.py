@@ -23,7 +23,10 @@ CORS(app)
 REQUIRED_RESOURCE_FILES = [
     'models/svd_artifacts.pkl',
     'datasets/raw/anime.csv',
-    'datasets/raw/spotify_tracks.csv'
+    'datasets/raw/spotify_tracks.csv',
+    'datasets/processed/movies_clean.csv',
+    'datasets/processed/ratings_clean.csv',
+    'datasets/processed/movies_exploded.csv'
 ]
 
 def get_missing_files():
@@ -47,10 +50,27 @@ _anime_cache     = {}
 _cache_lock      = threading.Lock()
 
 def _build_analytics_cache():
-    """Pre-aggregate analytics stats once at startup to avoid per-request CSV loading."""
+    """Pre-aggregate analytics stats once at startup (favoring pre-computed JSON)."""
     global _analytics_cache
+    cache_path = os.path.join(PROCESSED_DIR, 'analytics_cache.json')
+    
+    # ── Step 1: Try pre-computed JSON (Instant) ─────────────────────
+    if os.path.exists(cache_path):
+        try:
+            import json
+            with open(cache_path, 'r') as f:
+                data = json.load(f)
+                with _analytics_lock:
+                    _analytics_cache = data
+            print('✅ Analytics dashboard loaded from pre-computed cache.')
+            return
+        except Exception as e:
+            print(f'Warning: Pre-computed cache load failed: {e}')
+
+    # ── Step 2: Fallback to full CSV aggregation (Slow) ─────────────
     try:
         import pandas as pd
+        print('⏳ Building analytics cache from raw CSVs (1M ratings)...')
         ratings    = pd.read_csv(os.path.join(PROCESSED_DIR, 'ratings_clean.csv'))
         movies     = pd.read_csv(os.path.join(PROCESSED_DIR, 'movies_clean.csv'))
         movies_exp = pd.read_csv(os.path.join(PROCESSED_DIR, 'movies_exploded.csv'))
@@ -76,14 +96,6 @@ def _build_analytics_cache():
             for _, r in top_movies.iterrows()
         ]
 
-        genre_ratings = (
-            ratings.merge(movies_exp[['movieId','genre']], on='movieId', how='left')
-            .groupby('genre')['rating'].mean()
-            .sort_values(ascending=False).head(15)
-        )
-        genre_rating_data = [{'genre': g, 'avg_rating': round(float(v), 2)}
-                              for g, v in genre_ratings.items()]
-
         summary = {
             'total_ratings': int(len(ratings)),
             'total_movies':  int(movies['movieId'].nunique()),
@@ -97,12 +109,11 @@ def _build_analytics_cache():
                 'summary':      summary,
                 'genre_counts': genre_data,
                 'rating_dist':  rating_data,
-                'top_movies':   top_data,
-                'genre_ratings': genre_rating_data
+                'top_movies':   top_data
             }
-        print('Analytics cache built successfully.')
+        print('✅ Analytics cache built successfully (Fallback).')
     except Exception as e:
-        print(f'Analytics pre-load error: {e}')
+        print(f'❌ Analytics pre-load error: {e}')
         with _analytics_lock:
             _analytics_cache = {'success': False, 'error': str(e)}
 
