@@ -47,6 +47,10 @@ D:\MoodVerse_Project\
 ├── models\
 │   └── svd_artifacts.pkl        ← from Drive root
 └── datasets\
+    ├── processed\               ← from Drive root (Core clean movie datasets)
+    │   ├── movies_clean.csv
+    │   ├── ratings_clean.csv
+    │   └── ...
     └── raw\
         ├── ml-1m\               ← MovieLens 1M folder
         ├── ml-10M100K\          ← MovieLens 10M folder
