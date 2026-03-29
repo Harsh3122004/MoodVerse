@@ -38,9 +38,12 @@ def system_status():
     })
 
 
-# ── Analytics cache (pre-loaded at startup) ──────────────────────────────────
+# ── Analytics & Poster caches (pre-loaded or dynamic) ────────────────────────
 _analytics_cache = None
 _analytics_lock  = threading.Lock()
+_poster_cache    = {}  # { "title+year": { "success": bool, "data": dict } }
+_anime_cache     = {}  # { "title": { "success": bool, "data": dict } }
+_cache_lock      = threading.Lock()
 
 def _build_analytics_cache():
     """Pre-aggregate analytics stats once at startup to avoid per-request CSV loading."""
@@ -435,34 +438,49 @@ def user_analytics(user_id):
 # ── OMDB Poster Proxy (avoids CORS / key issues client-side) ─────────────────
 @app.route('/api/poster', methods=['GET'])
 def poster_proxy():
-    """Fetch movie poster and plot from OMDB API server-side."""
+    """Fetch movie poster and plot from OMDB API server-side with caching."""
     title = request.args.get('title', '').strip()
     year  = request.args.get('year', '').strip()
     if not title:
         return jsonify({'success': False, 'error': 'No title provided'}), 400
+    
+    cache_key = f"{title.lower()}_{year}"
+    with _cache_lock:
+        if cache_key in _poster_cache:
+            return jsonify(_poster_cache[cache_key])
+
     try:
         import requests as _req
         params = {'t': title, 'apikey': 'trilogy', 'plot': 'short'}
         if year:
             params['y'] = year
+            
         # Try with multiple free/demo keys
         for key in ['trilogy', '8a02a466', 'aa9290ec', 'f200ae9e']:
             params['apikey'] = key
             try:
-                r = _req.get('https://www.omdbapi.com/', params=params, timeout=4)
+                # Reduced timeout from 4s to 1.2s for faster key cycling/fallback
+                r = _req.get('https://www.omdbapi.com/', params=params, timeout=1.2)
                 if r.status_code == 200:
                     data = r.json()
                     if data.get('Response') == 'True':
-                        return jsonify({
+                        res = {
                             'success': True,
                             'poster':  data.get('Poster', 'N/A'),
                             'plot':    data.get('Plot', ''),
                             'imdbRating': data.get('imdbRating', ''),
                             'year':    data.get('Year', '')
-                        })
+                        }
+                        with _cache_lock:
+                            _poster_cache[cache_key] = res
+                        return jsonify(res)
             except Exception:
                 continue
-        return jsonify({'success': False, 'poster': None, 'plot': ''})
+        
+        fail_res = {'success': False, 'poster': None, 'plot': ''}
+        with _cache_lock:
+            _poster_cache[cache_key] = fail_res
+        return jsonify(fail_res)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -471,53 +489,56 @@ def poster_proxy():
 @app.route('/api/anime-poster', methods=['GET'])
 def anime_poster_proxy():
     """
-    Fetch anime poster from Jikan v4 (MyAnimeList) server-side.
+    Fetch anime poster from Jikan v4 (MyAnimeList) server-side with caching.
     Falls back to Kitsu.io API if Jikan fails or returns no image.
-    Completely avoids CORS and browser-side rate-limit issues.
     """
     title = request.args.get('title', '').strip()
     if not title:
         return jsonify({'success': False, 'poster': None}), 400
+        
+    with _cache_lock:
+        if title.lower() in _anime_cache:
+            return jsonify(_anime_cache[title.lower()])
+
     try:
         import requests as _req
-
         # ── Try Jikan v4 (MyAnimeList) ──────────────────────────────────
         try:
-            r = _req.get(
-                'https://api.jikan.moe/v4/anime',
-                params={'q': title, 'limit': 1},
-                timeout=5
-            )
+            r = _req.get('https://api.jikan.moe/v4/anime', params={'q': title, 'limit': 1}, timeout=1.5)
             if r.status_code == 200:
                 data = r.json().get('data', [])
                 if data:
                     img = (data[0].get('images', {}).get('jpg', {}).get('large_image_url')
                            or data[0].get('images', {}).get('jpg', {}).get('image_url'))
                     if img:
-                        return jsonify({'success': True, 'poster': img, 'source': 'jikan'})
+                        res = {'success': True, 'poster': img, 'source': 'jikan'}
+                        with _cache_lock:
+                            _anime_cache[title.lower()] = res
+                        return jsonify(res)
         except Exception:
             pass
 
         # ── Fallback: Kitsu.io API ───────────────────────────────────────
         try:
-            r2 = _req.get(
-                'https://kitsu.io/api/edge/anime',
-                params={'filter[text]': title, 'page[limit]': 1},
-                headers={'Accept': 'application/vnd.api+json'},
-                timeout=5
-            )
+            r2 = _req.get('https://kitsu.io/api/edge/anime', params={'filter[text]': title, 'page[limit]': 1}, 
+                          headers={'Accept': 'application/vnd.api+json'}, timeout=1.5)
             if r2.status_code == 200:
                 data2 = r2.json().get('data', [])
                 if data2:
                     attrs = data2[0].get('attributes', {})
-                    img2 = (attrs.get('posterImage', {}).get('large')
-                            or attrs.get('posterImage', {}).get('medium'))
+                    img2 = (attrs.get('posterImage', {}).get('large') or attrs.get('posterImage', {}).get('medium'))
                     if img2:
-                        return jsonify({'success': True, 'poster': img2, 'source': 'kitsu'})
+                        res = {'success': True, 'poster': img2, 'source': 'kitsu'}
+                        with _cache_lock:
+                            _anime_cache[title.lower()] = res
+                        return jsonify(res)
         except Exception:
             pass
 
-        return jsonify({'success': False, 'poster': None})
+        fail_res = {'success': False, 'poster': None}
+        with _cache_lock:
+            _anime_cache[title.lower()] = fail_res
+        return jsonify(fail_res)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

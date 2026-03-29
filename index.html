@@ -853,13 +853,13 @@ function AIToolsPage({token}){
       <div className="tools-grid">
         <div className="tool-card">
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'4px'}}>
-            <div className="tool-title">🤖 Sentiment Analyzer</div>
+            <div className="tool-title">🤖 Review Analyzer</div>
             {reviewText&&<button className="btn" style={{padding:'3px 9px',fontSize:'.73rem'}} onClick={()=>{setReviewText('');setSentResult(null);}}>Clear</button>}
           </div>
           <div className="tool-sub">HuggingFace DistilBERT Transformer — paste any movie review.</div>
           <textarea className="tool-textarea" value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder="e.g. This movie was absolutely brilliant..."/>
           <button className="btn primary" onClick={analyzeSentiment} disabled={sentLoading||!reviewText.trim()}>
-            {sentLoading?<span>Analyzing <span className="loading-dots"><span/><span/><span/></span></span>:'Analyze Sentiment'}</button>
+            {sentLoading?<span>Analyzing <span className="loading-dots"><span/><span/><span/></span></span>:'Analyze Review'}</button>
           {sentLoading&&<div style={{fontSize:'.75rem',color:'var(--txt2)',marginTop:'6px'}}>Running DistilBERT Transformer model...</div>}
           {sentResult&&<div className="result-box">
             <div className={sentResult.sentiment==='Positive'?'sent-pos':'sent-neg'}>{sentResult.sentiment==='Positive'?'😊':'😞'} {sentResult.sentiment}</div>
@@ -889,7 +889,7 @@ function AIToolsPage({token}){
           </div>}
         </div>
       </div>
-      <div className="info-box">🧠 <strong>AI/ML Domain:</strong> DistilBERT Transformer (HuggingFace) for sentiment · TF-IDF cosine similarity (sklearn) for genre prediction · NLP mood detection powering the Discover tab.</div>
+      <div className="info-box">🧠 <strong>AI/ML Domain:</strong> DistilBERT Transformer (HuggingFace) for review analysis · TF-IDF cosine similarity (sklearn) for genre prediction · NLP mood detection powering the Discover tab.</div>
     </div>
   );
 }
