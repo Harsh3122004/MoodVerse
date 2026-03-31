@@ -22,38 +22,38 @@ GENRE CLASSIFICATION - COMPREHENSIVE OPTIMIZATION REPORT
 3. PERFORMANCE RESULTS
 ---
 MACRO AGGREGATES (equal weight per genre):
-  F1 Score:          0.1927
-  Precision:         0.1192
-  Recall:            0.8665
+  F1 Score:          0.1933
+  Precision:         0.1176
+  Recall:            0.8865
   Accuracy:          0.0000
-  Hamming Loss:      0.5919
+  Hamming Loss:      0.6141
 
 WEIGHTED AGGREGATES (by sample count):
-  Precision (W):     0.5370
-  Recall (W):        0.0689
+  Precision (W):     0.5373
+  Recall (W):        0.0694
 
 IMPROVEMENT vs BASELINE (Global 0.5 threshold):
-  F1 Macro:          +-2.02%
-  Precision Macro:   +-1.34%
-  Recall Macro:      +13.04%
+  F1 Macro:          +-2.53%
+  Precision Macro:   +-1.94%
+  Recall Macro:      +17.05%
 
 4. PER-GENRE PERFORMANCE HIGHLIGHTS
 ---
 TOP 5 GENRES:
 
-  1. Thriller        - F1:0.320 P:0.237 R:0.494 Support:1749
-  2. Fantasy         - F1:0.082 P:0.193 R:0.052 Support:561
-  3. War             - F1:0.073 P:0.038 R:0.950 Support:397
-  4. Film-Noir       - F1:0.069 P:0.036 R:0.853 Support:75
-  5. Western         - F1:0.035 P:0.714 R:0.018 Support:282
+  1. Drama           - F1:0.151 P:0.576 R:0.087 Support:5116
+  2. Fantasy         - F1:0.117 P:0.063 R:0.818 Support:561
+  3. Thriller        - F1:0.114 P:0.344 R:0.069 Support:1749
+  4. War             - F1:0.099 P:0.199 R:0.066 Support:397
+  5. Film-Noir       - F1:0.077 P:0.041 R:0.733 Support:75
 
 BOTTOM 5 GENRES (need more data/improvement):
 
-  1. Documentary     - F1:0.002 P:0.500 R:0.001 Support:1148
-  2. Crime           - F1:0.004 P:0.500 R:0.002 Support:1099
-  3. Action          - F1:0.004 P:0.600 R:0.002 Support:1485
-  4. Romance         - F1:0.004 P:0.600 R:0.002 Support:1482
-  5. Adventure       - F1:0.005 P:1.000 R:0.003 Support:808
+  1. Adventure       - F1:0.000 P:0.000 R:0.000 Support:808
+  2. Romance         - F1:0.001 P:0.250 R:0.001 Support:1482
+  3. Documentary     - F1:0.002 P:0.500 R:0.001 Support:1148
+  4. Crime           - F1:0.004 P:0.500 R:0.002 Support:1099
+  5. Action          - F1:0.004 P:0.750 R:0.002 Support:1485
 
 5. PRODUCTION RECOMMENDATIONS
 ---
@@ -81,8 +81,8 @@ LONG TERM (3-6 months):
 ---
 - Drama and Horror genres have highest F1 scores (large, well-defined datasets)
 - Rare genres (Animation, War, Western) need more training examples (<20 samples)
-- Per-genre threshold tuning provides -2.0% improvement
-- Balanced thresholds improve recall by 13.0%
+- Per-genre threshold tuning provides -2.5% improvement
+- Balanced thresholds improve recall by 17.1%
 
 7. FILES GENERATED
 ---
@@ -93,5 +93,5 @@ LONG TERM (3-6 months):
 ✓ precision_accuracy_analysis.png     - 4-panel visualization of all metrics
 
 ================================================================================
-END OF REPORT - Generated 2026-03-28 13:21:22
+END OF REPORT - Generated 2026-03-31 22:09:52
 ================================================================================

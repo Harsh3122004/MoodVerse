@@ -1,10 +1,10 @@
 {
-  "hamming_loss": 0.1968,
-  "f1_macro": 0.2394,
-  "f1_micro": 0.329,
-  "f1_samples": 0.3285,
-  "precision_macro": 0.1904,
-  "recall_macro": 0.4411,
+  "hamming_loss": 0.1996,
+  "f1_macro": 0.2388,
+  "f1_micro": 0.321,
+  "f1_samples": 0.3147,
+  "precision_macro": 0.1876,
+  "recall_macro": 0.4436,
   "n_labels": 19,
   "labels": [
     "Action",
